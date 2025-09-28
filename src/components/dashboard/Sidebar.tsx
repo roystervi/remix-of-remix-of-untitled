@@ -126,14 +126,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
             </div>
           </div>
           
-          {/* Audio Visualization */}
-          <div className="flex items-end justify-center gap-1 h-16" suppressHydrationWarning={true}>
+          {/* Audio Visualization - Made more visible */}
+          <div className="flex items-end justify-center gap-2 h-20 bg-background/50 rounded-lg p-2" suppressHydrationWarning={true}>
             {audioLevels.map((level, i) => (
               <div
                 key={i}
-                className="bg-gradient-to-t from-primary to-primary/80 rounded-full w-1 audio-bar"
+                className="bg-gradient-to-t from-primary to-primary/80 rounded-full w-2 flex-1 audio-bar max-h-full"
                 style={{
-                  height: `${level}%`,
+                  height: `${Math.min(level * 1.2, 100)}%`, // Slightly taller for visibility
                   animationDelay: `${(i * 0.1).toFixed(1)}s`,
                 }}
               />
