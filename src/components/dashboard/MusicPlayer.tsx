@@ -1,6 +1,6 @@
 "use client"
 
-import { Volume2, MoreHorizontal, SkipBack, SkipForward, Pause, Music } from 'lucide-react';
+import { Volume2, MoreHorizontal, SkipBack, SkipForward, Pause, Music, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 
@@ -37,6 +37,16 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
         audio.play();
       }
       setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleStop = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+      setCurrentTime(0);
+      setIsPlaying(false);
     }
   };
 
@@ -104,6 +114,7 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
               {isPlaying ? <Pause className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-primary-foreground" /> : <Music className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-primary-foreground" />}
             </button>
             <SkipForward className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex-shrink-0" />
+            <StopCircle className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-destructive hover:text-destructive/80 transition-colors cursor-pointer flex-shrink-0" onClick={handleStop} />
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
             <Volume2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-muted-foreground flex-shrink-0" />
