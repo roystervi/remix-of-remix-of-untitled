@@ -3,8 +3,6 @@
 import React, { useState, useRef } from 'react';
 import { 
   Settings2, 
-  Wifi, 
-  WifiOff, 
   CheckCircle, 
   AlertCircle, 
   Loader2, 
@@ -318,18 +316,9 @@ const TabsContent = ({ value, children, activeTab, className = '' }) => {
 const SettingsPage = () => {
   const router = useRouter();
   
-  const [haConnection, setHaConnection] = useState({
-    haUrl: '',
-    haToken: '',
-    connectionStatus: 'unknown' as 'unknown' | 'connecting' | 'connected' | 'disconnected',
-    isConnected: false,
-    lastChecked: null as Date | null,
-    isTestingConnection: false
-  });
-  
-  const [formData, setFormData] = useState({ url: '', token: '' });
-  const [entityState, setEntityState] = useState(null as any);
-  const [isLoadingHa, setIsLoadingHa] = useState(true);
+  const [formData, setFormData] = useState({ url: '', token: '' }); // Remove if no longer needed
+  const [entityState, setEntityState] = useState(null as any); // Remove
+  const [isLoadingHa, setIsLoadingHa] = useState(true); // Remove
   
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [weatherProvider, setWeatherProvider] = useState("openweathermap");
@@ -348,7 +337,7 @@ const SettingsPage = () => {
   const [isFetchingWeather, setIsFetchingWeather] = useState(false); // Added
   const [lastSaves, setLastSaves] = useState({
     appearance: null as string | null,
-    connections: null as string | null,
+    // connections: null as string | null, // Remove
     general: null as string | null,
     notifications: null as string | null,
     weather: null as string | null,
@@ -496,10 +485,7 @@ const SettingsPage = () => {
     }
   }, [appearanceSettings]);
 
-  // Add useEffect to sync formData with HA connection state
-  React.useEffect(() => {
-    setFormData(prev => ({ ...prev, url: haConnection.haUrl }));
-  }, [haConnection.haUrl]);
+  // Remove useEffect for HA connection data
 
   // Added: Fetch backup data
   const fetchBackupData = async () => {
@@ -525,86 +511,6 @@ const SettingsPage = () => {
   React.useEffect(() => {
     fetchBackupData();  // Added
   }, []);
-
-  // Add useEffect to load HA connection data
-  React.useEffect(() => {
-    const loadHaConnection = async () => {
-      setIsLoadingHa(true);
-      try {
-        const response = await fetch('/api/ha-connection');
-        if (response.ok) {
-          const data = await response.json();
-          setHaConnection({
-            haUrl: data.url || '',
-            haToken: '', // Always empty for security
-            connectionStatus: data.status || 'unknown',
-            isConnected: data.isConnected || false,
-            lastChecked: data.lastChecked ? new Date(data.lastChecked) : null,
-            isTestingConnection: false
-          });
-          setFormData({ url: data.url || '', token: '' });
-          
-          if (data.isConnected) {
-            await fetchEntityState();
-            await fetchWeatherPreview(); // Auto-fetch weather if connected
-          } else {
-            setFetchedWeather(null); // Hide preview if not connected
-          }
-        } else if (response.status === 404 || response.status === 200 && !response.body) {
-          // No connection, treat as empty
-          setHaConnection({
-            haUrl: '',
-            haToken: '',
-            connectionStatus: 'unknown',
-            isConnected: false,
-            lastChecked: null,
-            isTestingConnection: false
-          });
-          setFormData({ url: '', token: '' });
-          setFetchedWeather(null); // Hide preview
-        }
-      } catch (error) {
-        console.error('Failed to load HA connection:', error);
-        setHaConnection({
-          haUrl: '',
-          haToken: '',
-          connectionStatus: 'unknown',
-          isConnected: false,
-          lastChecked: null,
-          isTestingConnection: false
-        });
-        setFormData({ url: '', token: '' });
-        setFetchedWeather(null); // Hide preview
-      } finally {
-        setIsLoadingHa(false);
-      }
-    };
-    
-    loadHaConnection();
-  }, []);
-  
-  // Function to fetch entity state
-  const fetchEntityState = async () => {
-    try {
-      const response = await fetch('/api/ha-entity-state?entity=conversation.home_assistant');
-      if (response.ok) {
-        const data = await response.json();
-        setEntityState(data);
-      } else {
-        setEntityState(null);
-      }
-    } catch (error) {
-      console.error('Failed to fetch entity state:', error);
-      setEntityState(null);
-    }
-  };
-
-  // Add useEffect to hide preview when disconnected
-  React.useEffect(() => {
-    if (!haConnection.isConnected) {
-      setFetchedWeather(null);
-    }
-  }, [haConnection.isConnected]);
 
   // Add useEffect to load database settings
   React.useEffect(() => {
@@ -787,119 +693,6 @@ const SettingsPage = () => {
       setFetchedWeather(null);
     } finally {
       setIsFetchingWeather(false);
-    }
-  };
-
-  const handleSaveConnection = async () => {
-    if (!formData.url || !formData.token) {
-      toast.error('URL and token required');
-      return;
-    }
-
-    setHaConnection(prev => ({ ...prev, connectionStatus: 'connecting', isTestingConnection: true }));
-    
-    try {
-      const response = await fetch('/api/ha-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: formData.url, token: formData.token })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setHaConnection({
-          haUrl: data.url,
-          haToken: '', // Clear after save
-          connectionStatus: data.status,
-          isConnected: data.isConnected,
-          lastChecked: data.lastChecked ? new Date(data.lastChecked) : new Date(),
-          isTestingConnection: false
-        });
-        setFormData(prev => ({ ...prev, token: '' })); // Clear token
-        toast.success(data.isConnected ? 'HA connection saved and verified!' : `HA connection saved but test failed: ${data.error || 'Unknown issue'}`);
-        
-        if (data.isConnected) {
-          await fetchEntityState();
-          await fetchWeatherPreview(); // Auto-fetch weather on successful connection
-        } else {
-          setFetchedWeather(null); // Hide if not connected
-        }
-        setLastSaves(prev => ({ ...prev, connections: new Date().toISOString() }));
-      } else {
-        const errorData = await response.json();
-        setHaConnection(prev => ({ ...prev, connectionStatus: 'disconnected', isTestingConnection: false }));
-        setFetchedWeather(null); // Hide on failure
-        toast.error(errorData.error || 'Failed to save connection');
-      }
-    } catch (error) {
-      setHaConnection(prev => ({ ...prev, connectionStatus: 'disconnected', isTestingConnection: false }));
-      setFetchedWeather(null); // Hide on error
-      toast.error('Save failed: ' + (error as Error).message);
-    }
-  };
-  
-  const handleTestConnection = async () => {
-    if (!formData.url || !formData.token) {
-      toast.error('Please enter URL and token');
-      return;
-    }
-    
-    setHaConnection(prev => ({ ...prev, isTestingConnection: true }));
-    
-    try {
-      const response = await fetch('/api/ha-test-connection', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: formData.url, token: formData.token })
-      });
-      
-      const data = await response.json();
-      const newStatus = data.connected ? 'connected' : 'disconnected';
-      setHaConnection(prev => ({
-        ...prev,
-        connectionStatus: newStatus,
-        isConnected: data.connected,
-        lastChecked: new Date(),
-        isTestingConnection: false
-      }));
-      toast.success(data.connected ? 'Connection successful!' : `Connection failed: ${data.error}`);
-      
-      if (data.connected) {
-        await fetchEntityState();
-        await fetchWeatherPreview(); // Auto-fetch weather on successful test
-      } else {
-        setFetchedWeather(null); // Hide if not connected
-      }
-    } catch (error) {
-      setHaConnection(prev => ({ ...prev, connectionStatus: 'disconnected', isTestingConnection: false }));
-      setFetchedWeather(null); // Hide on error
-      toast.error('Test failed: ' + (error as Error).message);
-    }
-  };
-
-  const getStatusIcon = () => {
-    switch (haConnection.connectionStatus) {
-      case 'connected':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'disconnected':
-        return <WifiOff className="h-4 w-4 text-red-500" />;
-      case 'connecting':
-        return <Loader2 className="h-4 w-4 text-yellow-500 animate-spin" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
-    }
-  };
-
-  const getStatusBadge = () => {
-    switch (haConnection.connectionStatus) {
-      case 'connected':
-        return <Badge className="bg-green-600">Connected</Badge>;
-      case 'disconnected':
-        return <Badge variant="destructive">Disconnected</Badge>;
-      case 'connecting':
-        return <Badge variant="secondary">Connecting...</Badge>;
-      default:
-        return <Badge variant="outline">Not Configured</Badge>;
     }
   };
 
@@ -1227,9 +1020,8 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="appearance" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="connections">Connections</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="weather">Weather</TabsTrigger>
@@ -1570,122 +1362,6 @@ const SettingsPage = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="connections" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wifi className="h-5 w-5" />
-                    Home Assistant Connection
-                  </CardTitle>
-                  <CardDescription>
-                    Configure your Home Assistant server connection to sync device data
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusIcon()}
-                  {getStatusBadge()}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {haConnection.connectionStatus === 'connected' && entityState && (
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                  <h5 className="font-medium mb-2">Live Entity State: conversation.home_assistant</h5>
-                  <p className="text-sm"><strong>State:</strong> {formatDate(entityState.state) || 'unknown'}</p>
-                  {entityState.attributes && Object.entries(entityState.attributes).map(([key, value]) => (
-                    <p key={key} className="text-xs text-muted-foreground mt-1">
-                      <strong>{key}:</strong> {key.includes('last_changed') || key.includes('last_updated') ? formatDate(value) : JSON.stringify(value)}
-                    </p>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={fetchEntityState} className="mt-2">
-                    Refresh State
-                  </Button>
-                </div>
-              )}
-              
-              {haConnection.connectionStatus === 'disconnected' && haConnection.haUrl && haConnection.haToken && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <div>
-                    Connection to Home Assistant failed. Please check your settings and try again.
-                  </div>
-                </Alert>
-              )}
-
-              {haConnection.isTestingConnection || isLoadingHa ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  {haConnection.isTestingConnection ? 'Testing connection...' : 'Loading connection settings...'}
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ha-url">Home Assistant URL</Label>
-                    <Input
-                      id="ha-url"
-                      type="url"
-                      placeholder="https://homeassistant.local:8123"
-                      value={formData.url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
-                      className="font-mono"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      The full URL to your Home Assistant instance (including port if needed)
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="ha-token">Long-Lived Access Token</Label>
-                    <Input
-                      id="ha-token"
-                      type="password"
-                      placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                      value={formData.token}
-                      onChange={(e) => setFormData(prev => ({ ...prev, token: e.target.value }))}
-                      className="font-mono"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Generate a long-lived access token in Home Assistant → Profile → Security
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      onClick={handleTestConnection}
-                      variant="outline"
-                      disabled={!formData.url || !formData.token || haConnection.isTestingConnection}
-                    >
-                      {haConnection.isTestingConnection ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Testing...
-                        </>
-                      ) : (
-                        <>
-                          <Wifi className="h-4 w-4 mr-2" />
-                          Test Connection
-                        </>
-                      )}
-                    </Button>
-                    <Button 
-                      onClick={handleSaveConnection}
-                      disabled={!formData.url || !formData.token}
-                    >
-                      Save Connection
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-4 border-t border-border text-xs text-muted-foreground">
-                <p><strong>Connections Last Backup Last saved file:</strong> {lastSaves.connections ? formatDate(lastSaves.connections) : 'Never'}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
@@ -1775,14 +1451,7 @@ const SettingsPage = () => {
                     </div>
 
                     <Button
-                      onClick={async () => {
-                        await fetchWeatherPreview();
-                        if (fetchedWeather) {
-                          toast.success("Weather API test successful!");
-                        } else {
-                          toast.error("Weather API test failed");
-                        }
-                      }}
+                      onClick={fetchWeatherPreview}
                       disabled={!weatherApiKey || !weatherLocation.lat || !weatherLocation.lon || isFetchingWeather}
                       className="w-full"
                     >
@@ -1799,7 +1468,7 @@ const SettingsPage = () => {
                       )}
                     </Button>
 
-                    {(haConnection.isConnected && (isFetchingWeather || fetchedWeather)) ? (
+                    {(isFetchingWeather || fetchedWeather) && (
                       <Card className={cn("bg-green-50 border-green-200", isFetchingWeather && "bg-muted")}>
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm font-medium text-green-800 flex items-center gap-2">
@@ -1829,7 +1498,7 @@ const SettingsPage = () => {
                           )}
                         </CardContent>
                       </Card>
-                    ) : null}
+                    )}
 
                     <Button
                       onClick={handleSaveWeatherSettings}
@@ -1850,7 +1519,7 @@ const SettingsPage = () => {
                     </Button>
 
                     <div className="pt-4 border-t border-border text-xs text-muted-foreground">
-                      <p><strong>Weather Last Backup Last saved file:</strong> {lastSaves.weather ? formatDate(lastSaves.weather) : 'Never'}</p>
+                      <p><strong>Weather Last saved:</strong> {lastSaves.weather ? formatDate(lastSaves.weather) : 'Never'}</p>
                     </div>
                   </>
                 )}
