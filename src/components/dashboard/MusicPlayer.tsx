@@ -97,23 +97,23 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
           <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
         </div>
 
-        <div className="flex items-center justify-between gap-4 mt-auto mb-4">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 mt-auto mb-4">
+          <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
             <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex-shrink-0" />
             <button onClick={togglePlayPause} className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors flex-shrink-0">
               {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" /> : <Music className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />}
             </button>
             <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer flex-shrink-0" />
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Volume2 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <Volume2 className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
             <input
               type="range"
               value={volume * 100}
               min={0}
               max={100}
               onChange={(e) => setVolume(parseFloat(e.target.value) / 100)}
-              className="w-12 sm:w-16 h-1 bg-muted rounded-full appearance-none cursor-pointer"
+              className="w-10 sm:w-16 h-1 bg-muted rounded-full appearance-none cursor-pointer"
             />
           </div>
         </div>
