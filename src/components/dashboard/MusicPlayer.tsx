@@ -2,46 +2,122 @@
 
 import { Volume2, MoreHorizontal, SkipBack, SkipForward, Pause, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useRef, useEffect } from 'react';
 
 interface MusicPlayerProps {
   className?: string;
 }
 
-export const MusicPlayer = ({ className }: MusicPlayerProps) => (
-  <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-2 sm:p-4 flex flex-col min-h-[250px]", className)}>
-    <div className="flex items-center gap-2 sm:gap-3 mb-4">
-      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-lg flex items-center justify-center">
-        <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-      </div>
-      <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground ml-auto" />
-    </div>
-    
-    <div className="mb-4">
-      <p className="text-xs sm:text-sm font-medium mb-1 text-foreground leading-tight">Rainy day relaxing sound</p>
-      <p className="text-xs text-muted-foreground leading-tight">Currently playing</p>
-    </div>
+export const MusicPlayer = ({ className }: MusicPlayerProps) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(0.5);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-    <div className="flex-1 flex flex-col">
-      <div className="flex-1 w-full min-h-20 sm:min-h-32 bg-gradient-to-br from-green-600 to-green-800 rounded-lg mb-3 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      </div>
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-xs text-muted-foreground">2:32</span>
-        <div className="flex-1 h-1 sm:h-1 bg-muted rounded-full">
-          <div className="w-1/3 h-full bg-primary rounded-full" />
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = volume;
+      audio.addEventListener('timeupdate', () => {
+        setCurrentTime(audio.currentTime);
+      });
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+      });
+    }
+  }, [volume]);
+
+  const togglePlayPause = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.currentTime = parseFloat(e.target.value);
+      setCurrentTime(audio.currentTime);
+    }
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-2 sm:p-4 flex flex-col min-h-[250px]", className)}>
+      <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="metadata" />
+      
+      <div className="flex items-center gap-2 sm:gap-3 mb-4">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-500 rounded-lg flex items-center justify-center">
+          <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
         </div>
-        <span className="text-xs text-muted-foreground">7:32</span>
+        <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground ml-auto" />
+      </div>
+      
+      <div className="mb-4">
+        <p className="text-xs sm:text-sm font-medium mb-1 text-foreground leading-tight">Rainy day relaxing sound</p>
+        <p className="text-xs text-muted-foreground leading-tight">Currently playing</p>
       </div>
 
-      <div className="flex items-center justify-center gap-4 mt-auto">
-        <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
-        <button className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors">
-          <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-        </button>
-        <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
-        <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1 w-full min-h-20 sm:min-h-32 bg-gradient-to-br from-green-600 to-green-800 rounded-lg mb-3 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-16 flex justify-center items-end gap-1 p-2">
+            {[0,1,2,3,4,5].map(i => (
+              <div key={i} className="bg-white/30 rounded w-0.5" style={{height: `${Math.random()*80 + 20}%`}} />
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-muted-foreground">{formatTime(currentTime)}</span>
+          <input
+            type="range"
+            value={currentTime}
+            min={0}
+            max={duration || 0}
+            onChange={handleProgressChange}
+            className="flex-1 h-1 bg-muted rounded-full appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, primary ${ (currentTime / duration) * 100 }%, muted ${ (currentTime / duration) * 100 }%)`
+            }}
+          />
+          <span className="text-xs text-muted-foreground">{formatTime(duration)}</span>
+        </div>
+
+        <div className="flex items-center justify-between gap-4 mt-auto mb-4">
+          <div className="flex items-center gap-4">
+            <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+            <button onClick={togglePlayPause} className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary/90 transition-colors">
+              {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" /> : <Music className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />}
+            </button>
+            <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-4 h-4 text-muted-foreground" />
+            <input
+              type="range"
+              value={volume * 100}
+              min={0}
+              max={100}
+              onChange={(e) => setVolume(parseFloat(e.target.value) / 100)}
+              className="w-16 h-1 bg-muted rounded-full appearance-none cursor-pointer"
+            />
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
