@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Home, 
   Plus, 
@@ -17,6 +17,9 @@ import { getSidebarClass } from '@/lib/dashboard-utils';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BarChart3 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -27,6 +30,75 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, audioLevels, screenSize }) => {
   const router = useRouter();
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [newRoomDialogOpen, setNewRoomDialogOpen] = useState(false);
+  const [newRoomName, setNewRoomName] = useState('');
+
+  // Fetch rooms
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch('/api/rooms');
+      if (!response.ok) throw new Error('Failed to fetch rooms');
+      const data = await response.json();
+      setRooms(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddRoom = async () => {
+    if (!newRoomName.trim()) return;
+    try {
+      setError(null);
+      const response = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newRoomName.trim() }),
+      });
+      if (!response.ok) throw new Error('Failed to create room');
+      setNewRoomName('');
+      setNewRoomDialogOpen(false);
+      fetchRooms(); // Refetch
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  // Find active room (hardcoded for My Workstation)
+  const activeRoom = rooms.find(room => room.name === 'My Workstation');
+
+  if (loading) {
+    return (
+      <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
+        {/* Mobile Close Button */}
+        {screenSize !== 'desktop' && (
+          <button 
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+
+        <div className="p-6 flex-1 overflow-y-auto">
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            <p className="text-sm text-muted-foreground mt-4">Loading rooms...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
@@ -72,44 +144,66 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
         {/* My Rooms Section */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-4 text-foreground">My Rooms</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {/* Entrance */}
-            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
-              <Home className="w-6 h-6 mb-2 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Entrance</p>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-card rounded-xl p-3 animate-pulse">
+                  <div className="w-6 h-6 bg-muted rounded mb-2" />
+                  <div className="h-4 bg-muted rounded w-16" />
+                </div>
+              ))}
             </div>
-
-            {/* Backyard */}
-            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
-              <Home className="w-6 h-6 mb-2 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Backyard</p>
+          ) : error ? (
+            <div className="text-destructive text-sm">Error: {error}</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {rooms.map((room) => (
+                <button
+                  key={room.id}
+                  onClick={() => router.push(`/rooms/${room.id}`)}
+                  className={cn(
+                    "bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors",
+                    activeRoom?.id === room.id && "bg-primary text-primary-foreground"
+                  )}
+                >
+                  <Home className="w-6 h-6 mb-2 text-muted-foreground" />
+                  <p className="text-sm font-medium">{room.name}</p>
+                </button>
+              ))}
+              {rooms.length < 6 && ( // Limit display to 6 including add
+                <button 
+                  onClick={() => setNewRoomDialogOpen(true)}
+                  className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center hover:border-primary transition-colors"
+                >
+                  <Plus className="w-6 h-6 text-muted-foreground" />
+                  <p className="text-sm font-medium text-muted-foreground mt-1">Add new</p>
+                </button>
+              )}
             </div>
-
-            {/* Living Room */}
-            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
-              <Home className="w-6 h-6 mb-2 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Living Room</p>
-            </div>
-
-            {/* Front Room */}
-            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
-              <Home className="w-6 h-6 mb-2 text-muted-foreground" />
-              <p className="text-sm font-medium text-foreground">Front Room</p>
-            </div>
-
-            {/* My Workstation - Highlighted */}
-            <div className="bg-primary rounded-xl p-3 flex flex-col items-center cursor-pointer">
-              <Home className="w-6 h-6 mb-2 text-primary-foreground" />
-              <p className="text-sm font-medium text-primary-foreground">My Workstation</p>
-            </div>
-
-            {/* Add New Room */}
-            <button className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center hover:border-primary transition-colors">
-              <Plus className="w-6 h-6 text-muted-foreground" />
-              <p className="text-sm font-medium text-muted-foreground mt-1">Add new</p>
-            </button>
-          </div>
+          )}
         </div>
+
+        {/* Add Room Dialog */}
+        <Dialog open={newRoomDialogOpen} onOpenChange={setNewRoomDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Room</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Input
+                value={newRoomName}
+                onChange={(e) => setNewRoomName(e.target.value)}
+                placeholder="Room name"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddRoom()}
+              />
+              {error && <p className="text-destructive text-sm">{error}</p>}
+              <div className="flex justify-end space-x-2">
+                <DialogClose>Cancel</DialogClose>
+                <Button onClick={handleAddRoom}>Add Room</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Set Room Environment Section */}
         <div className="mb-6">
