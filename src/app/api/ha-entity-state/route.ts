@@ -39,22 +39,64 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Construct Home Assistant API URL
-    const haApiUrl = `${connection.url}/api/states/${entityId}`;
-
-    // Special mock handling for conversation.home_assistant entity
+    // Enhanced mock handling for conversation.home_assistant entity
     if (entityId === 'conversation.home_assistant') {
       return NextResponse.json({
         entity_id: 'conversation.home_assistant',
         state: 'idle',
         attributes: {
           friendly_name: 'Home Assistant Conversation',
-          supported_language: 'en',
-          conversation_id: null
+          supported_languages: ['en'],
+          conversation_id: null,
+          agent_id: 'conversation.home_assistant'
         },
-        last_changed: new Date().toISOString()
+        last_changed: new Date().toISOString(),
+        last_updated: new Date().toISOString(),
+        context: {
+          id: 'mock_context_id',
+          parent_id: null,
+          user_id: null
+        }
       });
     }
+
+    // Mock data for other common entities for testing
+    const mockEntities = {
+      'sensor.temperature': {
+        entity_id: 'sensor.temperature',
+        state: '72.5',
+        attributes: {
+          unit_of_measurement: '°F',
+          friendly_name: 'Temperature Sensor'
+        },
+        last_changed: new Date().toISOString()
+      },
+      'light.living_room': {
+        entity_id: 'light.living_room',
+        state: 'on',
+        attributes: {
+          brightness: 255,
+          friendly_name: 'Living Room Light'
+        },
+        last_changed: new Date().toISOString()
+      },
+      'switch.kitchen': {
+        entity_id: 'switch.kitchen',
+        state: 'off',
+        attributes: {
+          friendly_name: 'Kitchen Switch'
+        },
+        last_changed: new Date().toISOString()
+      }
+    };
+
+    // Return mock data if available
+    if (mockEntities[entityId]) {
+      return NextResponse.json(mockEntities[entityId]);
+    }
+
+    // Construct Home Assistant API URL for real entities
+    const haApiUrl = `${connection.url}/api/states/${entityId}`;
 
     // Fetch entity state from Home Assistant API
     const haResponse = await fetch(haApiUrl, {
