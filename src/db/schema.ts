@@ -50,16 +50,6 @@ export const backups = sqliteTable('backups', {
   createdAt: text('created_at').notNull(),
 });
 
-export const homeAssistantConnections = sqliteTable('home_assistant_connections', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  url: text('url').notNull().unique(),
-  token: text('token').notNull(),
-  status: text('status').notNull().default('unknown'),
-  lastChecked: text('last_checked'),
-  createdAt: text('created_at').notNull(),
-  updatedAt: text('updated_at').notNull(),
-});
-
 export const databaseSettings = sqliteTable('database_settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   autoBackup: integer('auto_backup', { mode: 'boolean' }).default(false),
