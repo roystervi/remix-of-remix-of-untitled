@@ -1,6 +1,6 @@
 "use client"
 
-import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle } from 'lucide-react';
+import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 
@@ -76,8 +76,12 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
           <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-white" />
         </div>
         <div className="flex-1 flex justify-center items-center gap-1">
-          <SkipBack className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
-          <SkipForward className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+          <button className="w-8 h-8 sm:w-10 sm:h-10 bg-background border border-border rounded-full flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-foreground" />
+          </button>
+          <button className="w-8 h-8 sm:w-10 sm:h-10 bg-background border border-border rounded-full flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-foreground" />
+          </button>
         </div>
         <Menu 
           className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" 
