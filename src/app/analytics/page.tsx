@@ -68,7 +68,7 @@ const AnalyticsPage: React.FC = () => {
         if (response.ok) {
           const settings = await response.json();
           const root = document.documentElement;
-          root.style.setProperty('--background', settings.backgroundColor || 'rgb(92, 113, 132)');
+          root.style.setProperty('--background', 'white'); // Override to keep analytics white
           root.style.setProperty('--primary', settings.primaryColor || '#3b82f6');
           root.style.setProperty('--muted-foreground', settings.cardPlaceholderColor || '#9ca3af');
           root.style.setProperty('--secondary-foreground', settings.cardPlaceholderColor || '#9ca3af');
