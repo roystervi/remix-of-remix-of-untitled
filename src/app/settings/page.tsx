@@ -320,7 +320,7 @@ const SettingsPage = () => {
   const [entityState, setEntityState] = useState(null as any); // Remove
   const [isLoadingHa, setIsLoadingHa] = useState(true); // Remove
   
-  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
+  const [backgroundColor, setBackgroundColor] = useState("#5c7184"); // Changed from "#ffffff"
   const [weatherProvider, setWeatherProvider] = useState("openweathermap");
   const [weatherApiKey, setWeatherApiKey] = useState("");
   const [weatherUnits, setWeatherUnits] = useState("imperial");
@@ -363,7 +363,7 @@ const SettingsPage = () => {
     screenSize: 'desktop' as 'mobile' | 'tablet' | 'desktop' | 'tv',
     width: 1200,
     height: 800,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#5c7184", // Changed from "#ffffff"
     primaryColor: "#3b82f6",
     cardPlaceholderColor: "#9ca3af",
     navbarBackgroundColor: "#f8fafc", // Added
@@ -615,7 +615,7 @@ const SettingsPage = () => {
             screenSize: appData.screenSize || 'desktop',
             width: appData.width || 1200,
             height: appData.height || 800,
-            backgroundColor: appData.backgroundColor || "#ffffff",
+            backgroundColor: appData.backgroundColor || "#5c7184", // Changed from "#ffffff"
             primaryColor: appData.primaryColor || "#3b82f6",
             cardPlaceholderColor: appData.cardPlaceholderColor || "#9ca3af",
             navbarBackgroundColor: appData.navbarBackgroundColor || "#f8fafc", // Added
@@ -803,7 +803,7 @@ const SettingsPage = () => {
   React.useEffect(() => {
     const root = document.documentElement;
     const primaryColorValue = appearanceSettings.primaryColor || '#3b82f6';
-    const backgroundColorValue = appearanceSettings.backgroundColor || '#ffffff';
+    const backgroundColorValue = appearanceSettings.backgroundColor || '#5c7184'; // Changed from '#ffffff'
     const cardPlaceholderValue = appearanceSettings.cardPlaceholderColor || '#9ca3af';
     const navbarBackgroundValue = appearanceSettings.navbarBackgroundColor || '#f8fafc'; // Added
     root.style.setProperty('--background', backgroundColorValue);
@@ -1224,7 +1224,7 @@ const SettingsPage = () => {
                     <Label>Background Color</Label>
                     <Input
                       type="color"
-                      value={appearanceSettings.backgroundColor || '#ffffff'}
+                      value={appearanceSettings.backgroundColor || '#5c7184'} // Changed from '#ffffff'
                       onChange={(e) => {
                         const color = e.target.value;
                         setAppearanceSettings(prev => ({ ...prev, backgroundColor: color }));
@@ -1283,10 +1283,10 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border" style={{ backgroundColor: appearanceSettings.backgroundColor || '#ffffff' }}>
+                <div className="p-4 rounded-lg border" style={{ backgroundColor: appearanceSettings.backgroundColor || '#5c7184' }}>
                   <p className="text-sm font-medium mb-2">Theme Preview</p>
                   <div className={cn("p-4 rounded-md border flex flex-col gap-2")} style={{ 
-                    backgroundColor: appearanceSettings.backgroundColor || '#ffffff' 
+                    backgroundColor: appearanceSettings.backgroundColor || '#5c7184' 
                   }}>
                     <div className="bg-[var(--sidebar)] p-3 rounded-md">
                       <p className="text-sm text-foreground">Navbar/Sidebar Sample</p>
@@ -1348,15 +1348,15 @@ const SettingsPage = () => {
                         screenSize: 'desktop',
                         width: 1200,
                         height: 800,
-                        backgroundColor: "#ffffff",
+                        backgroundColor: "#5c7184", // Changed from "#ffffff"
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
                         navbarBackgroundColor: "#f8fafc",
                         themePreset: "default"
                       });
-                      setBackgroundColor("#ffffff");
+                      setBackgroundColor("#5c7184"); // Changed from "#ffffff"
                       const root = document.documentElement;
-                      root.style.setProperty('--background', '#ffffff');
+                      root.style.setProperty('--background', '#5c7184');
                       root.style.setProperty('--card', '#ffffff');
                       root.style.setProperty('--primary', '#3b82f6');
                       root.style.setProperty('--muted-foreground', '#9ca3af');
@@ -1371,7 +1371,7 @@ const SettingsPage = () => {
                         screenSize: 'desktop',
                         width: 1200,
                         height: 800,
-                        backgroundColor: "#ffffff",
+                        backgroundColor: "#5c7184",
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
                         navbarBackgroundColor: "#f8fafc",
