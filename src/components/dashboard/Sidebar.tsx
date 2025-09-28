@@ -114,26 +114,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
 
       <div className="p-6 flex-1 overflow-y-auto">
         {/* Voice Assistance - Moved to Top */}
-        <div className="bg-muted rounded-xl p-3 mb-4 relative border border-accent/30 shadow-md">
-          <h4 className="text-xs font-semibold mb-2 text-foreground border-b pb-1">Voice assistance</h4>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Mic className="w-4 h-4 text-primary-foreground" />
+        <div className="bg-muted rounded-xl p-2 mb-3 relative border border-accent/30 shadow-md">
+          <h4 className="text-xs font-semibold mb-1 text-foreground border-b pb-1">Voice assistance</h4>
+          <div className="flex items-center gap-1 mb-1">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Mic className="w-3 h-3 text-primary-foreground" />
             </div>
             <div>
               <p className="text-xs font-medium text-foreground">Hey Javis,</p>
-              <p className="text-xs text-muted-foreground">turn off all lights</p>
+              <p className="text-[10px] text-muted-foreground">turn off all lights</p>
             </div>
           </div>
           
           {/* Audio Visualization - Half size */}
-          <div className="flex items-end justify-center gap-0.5 h-24 bg-gradient-to-b from-background to-muted/50 rounded-xl p-3 border border-primary/20 shadow-xl ring-1 ring-primary/30 overflow-hidden" suppressHydrationWarning={true}>
+          <div className="flex items-end justify-center gap-0.5 h-12 bg-gradient-to-b from-background to-muted/50 rounded-xl p-2 border border-primary/20 shadow-xl ring-1 ring-primary/30 overflow-hidden" suppressHydrationWarning={true}>
             {audioLevels.map((level, i) => (
               <div
                 key={i}
-                className="bg-gradient-to-t from-primary via-blue-500 to-cyan-400 rounded-full w-3 flex-shrink-0 audio-bar transition-all duration-100 shadow-md relative overflow-hidden"
+                className="bg-gradient-to-t from-primary via-blue-500 to-cyan-400 rounded-full w-2 flex-shrink-0 audio-bar transition-all duration-100 shadow-md relative overflow-hidden"
                 style={{
-                  height: `${Math.min(level * 3, 70)}px`,
+                  height: `${Math.min(level * 3, 35)}px`,
                   animationDelay: `${(i * 0.02).toFixed(2)}s`,
                 }}
                 title={`Level ${level}%`}
@@ -141,7 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
                 <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
               </div>
             ))}
-            <span className="absolute bottom-1 right-1 text-xs text-muted-foreground font-mono">Live Audio</span>
+            <span className="absolute bottom-1 right-1 text-[10px] text-muted-foreground font-mono">Live Audio</span>
           </div>
         </div>
 
