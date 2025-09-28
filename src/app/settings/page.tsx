@@ -366,6 +366,7 @@ const SettingsPage = () => {
     backgroundColor: "#ffffff",
     primaryColor: "#3b82f6",
     cardPlaceholderColor: "#9ca3af",
+    navbarBackgroundColor: "#f8fafc", // Added
     themePreset: "default"
   });
 
@@ -617,6 +618,7 @@ const SettingsPage = () => {
             backgroundColor: appData.backgroundColor || "#ffffff",
             primaryColor: appData.primaryColor || "#3b82f6",
             cardPlaceholderColor: appData.cardPlaceholderColor || "#9ca3af",
+            navbarBackgroundColor: appData.navbarBackgroundColor || "#f8fafc", // Added
             themePreset: appData.themePreset || "default"
           };
           setAppearanceSettings(appDataWithDefaults);
@@ -803,13 +805,15 @@ const SettingsPage = () => {
     const primaryColorValue = appearanceSettings.primaryColor || '#3b82f6';
     const backgroundColorValue = appearanceSettings.backgroundColor || '#ffffff';
     const cardPlaceholderValue = appearanceSettings.cardPlaceholderColor || '#9ca3af';
+    const navbarBackgroundValue = appearanceSettings.navbarBackgroundColor || '#f8fafc'; // Added
     root.style.setProperty('--background', backgroundColorValue);
     root.style.setProperty('--primary', primaryColorValue);
     root.style.setProperty('--muted-foreground', cardPlaceholderValue);
     root.style.setProperty('--secondary-foreground', cardPlaceholderValue);
+    root.style.setProperty('--sidebar', navbarBackgroundValue); // Added
     const luminance = getLuminance(primaryColorValue);
     root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
-  }, [appearanceSettings.backgroundColor, appearanceSettings.primaryColor, appearanceSettings.cardPlaceholderColor]);
+  }, [appearanceSettings.backgroundColor, appearanceSettings.primaryColor, appearanceSettings.cardPlaceholderColor, appearanceSettings.navbarBackgroundColor]);
 
   // Add these states in the SettingsPage component, after existing states
   const [tables, setTables] = useState([]);
@@ -1257,15 +1261,38 @@ const SettingsPage = () => {
                       className="w-full h-12"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Navbar Background</Label>
+                    <Input
+                      type="color"
+                      value={appearanceSettings.navbarBackgroundColor || '#f8fafc'}
+                      onChange={(e) => {
+                        const color = e.target.value;
+                        setAppearanceSettings(prev => ({ ...prev, navbarBackgroundColor: color }));
+                        document.documentElement.style.setProperty('--sidebar', color);
+                        
+                        if (originalColors && e.target.value !== originalColors.navbarBackgroundColor) {
+                          if (timers.current.navbarBackgroundColor) clearTimeout(timers.current.navbarBackgroundColor);
+                          timers.current.navbarBackgroundColor = setTimeout(() => {
+                            setAppearanceSettings(prev => ({ ...prev, navbarBackgroundColor: originalColors.navbarBackgroundColor }));
+                          }, 30000);
+                        }
+                      }}
+                      className="w-full h-12"
+                    />
+                  </div>
                 </div>
 
                 <div className="p-4 rounded-lg border" style={{ backgroundColor: appearanceSettings.backgroundColor || '#ffffff' }}>
                   <p className="text-sm font-medium mb-2">Theme Preview</p>
-                  <div className={cn("p-4 rounded-md border")} style={{ 
+                  <div className={cn("p-4 rounded-md border flex flex-col gap-2")} style={{ 
                     backgroundColor: appearanceSettings.backgroundColor || '#ffffff' 
                   }}>
+                    <div className="bg-[var(--sidebar)] p-3 rounded-md">
+                      <p className="text-sm text-foreground">Navbar/Sidebar Sample</p>
+                    </div>
                     <button 
-                      className="px-4 py-2 rounded-md font-medium" 
+                      className="px-4 py-2 rounded-md font-medium self-start" 
                       style={{ 
                         backgroundColor: appearanceSettings.primaryColor || '#3b82f6', 
                         color: getLuminance(appearanceSettings.primaryColor || '#3b82f6') < 0.5 ? '#ffffff' : '#000000' 
@@ -1273,7 +1300,7 @@ const SettingsPage = () => {
                     >
                       Sample Button
                     </button>
-                    <p className="text-sm text-[var(--muted-foreground)] mt-2">Sample card text</p>
+                    <p className="text-sm text-[var(--muted-foreground)]">Sample card text</p>
                   </div>
                 </div>
               </div>
@@ -1324,6 +1351,7 @@ const SettingsPage = () => {
                         backgroundColor: "#ffffff",
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
+                        navbarBackgroundColor: "#f8fafc",
                         themePreset: "default"
                       });
                       setBackgroundColor("#ffffff");
@@ -1333,10 +1361,11 @@ const SettingsPage = () => {
                       root.style.setProperty('--primary', '#3b82f6');
                       root.style.setProperty('--muted-foreground', '#9ca3af');
                       root.style.setProperty('--secondary-foreground', '#9ca3af');
+                      root.style.setProperty('--sidebar', '#f8fafc');
                       const luminance = getLuminance('#3b82f6');
                       root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
                       Object.values(timers.current).forEach(timer => { if (timer) clearTimeout(timer); });
-                      timers.current = { primaryColor: null, backgroundColor: null, cardPlaceholderColor: null };  // Reset timers
+                      timers.current = { primaryColor: null, backgroundColor: null, cardPlaceholderColor: null, navbarBackgroundColor: null };  // Reset timers
                       setOriginalColors({
                         mode: 'auto',
                         screenSize: 'desktop',
@@ -1345,6 +1374,7 @@ const SettingsPage = () => {
                         backgroundColor: "#ffffff",
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
+                        navbarBackgroundColor: "#f8fafc",
                         themePreset: "default"
                       });
                       toast.success("Appearance reset to defaults!");
