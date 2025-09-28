@@ -114,30 +114,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
 
       <div className="p-6 flex-1 overflow-y-auto">
         {/* Voice Assistance - Moved to Top */}
-        <div className="bg-muted rounded-2xl p-4 mb-6">
-          <h4 className="text-sm font-semibold mb-3 text-foreground">Voice assistance</h4>
+        <div className="bg-muted rounded-2xl p-6 mb-8 relative border border-accent/30 shadow-lg">
+          <h4 className="text-sm font-semibold mb-3 text-foreground border-b pb-2">Voice assistance</h4>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0">
-              <Mic className="w-5 h-5 text-primary-foreground" />
+            <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+              <Mic className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <p className="text-sm font-medium">Hey Javis,</p>
+              <p className="text-sm font-medium text-foreground">Hey Javis,</p>
               <p className="text-sm text-muted-foreground">turn off all lights</p>
             </div>
           </div>
           
-          {/* Audio Visualization - Made more visible */}
-          <div className="flex items-end justify-center gap-2 h-20 bg-background/50 rounded-lg p-2" suppressHydrationWarning={true}>
+          {/* Audio Visualization - Maximally enhanced for visibility */}
+          <div className="flex items-end justify-center gap-1 h-48 bg-gradient-to-b from-background to-muted/50 rounded-2xl p-6 border-2 border-primary/20 shadow-2xl ring-2 ring-primary/30 overflow-hidden" suppressHydrationWarning={true}>
             {audioLevels.map((level, i) => (
               <div
                 key={i}
-                className="bg-gradient-to-t from-primary to-primary/80 rounded-full w-2 flex-1 audio-bar max-h-full"
+                className="bg-gradient-to-t from-primary via-blue-500 to-cyan-400 rounded-full w-5 flex-shrink-0 audio-bar transition-all duration-100 shadow-lg relative overflow-hidden"
                 style={{
-                  height: `${Math.min(level * 1.2, 100)}%`, // Slightly taller for visibility
-                  animationDelay: `${(i * 0.1).toFixed(1)}s`,
+                  height: `${Math.min(level * 3, 140)}px`, // Even taller max height
+                  animationDelay: `${(i * 0.02).toFixed(2)}s`, // Quicker stagger
                 }}
-              />
+                title={`Level ${level}%`} // For debugging visibility
+              >
+                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+              </div>
             ))}
+            <span className="absolute bottom-2 right-2 text-xs text-muted-foreground font-mono">Live Audio</span>
           </div>
         </div>
 
