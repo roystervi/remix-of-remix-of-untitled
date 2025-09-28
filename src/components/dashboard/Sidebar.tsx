@@ -114,34 +114,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
 
       <div className="p-6 flex-1 overflow-y-auto">
         {/* Voice Assistance - Moved to Top */}
-        <div className="bg-muted rounded-2xl p-6 mb-8 relative border border-accent/30 shadow-lg">
-          <h4 className="text-sm font-semibold mb-3 text-foreground border-b pb-2">Voice assistance</h4>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-              <Mic className="w-6 h-6 text-primary-foreground" />
+        <div className="bg-muted rounded-xl p-3 mb-4 relative border border-accent/30 shadow-md">
+          <h4 className="text-xs font-semibold mb-2 text-foreground border-b pb-1">Voice assistance</h4>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+              <Mic className="w-4 h-4 text-primary-foreground" />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">Hey Javis,</p>
-              <p className="text-sm text-muted-foreground">turn off all lights</p>
+              <p className="text-xs font-medium text-foreground">Hey Javis,</p>
+              <p className="text-xs text-muted-foreground">turn off all lights</p>
             </div>
           </div>
           
-          {/* Audio Visualization - Maximally enhanced for visibility */}
-          <div className="flex items-end justify-center gap-1 h-48 bg-gradient-to-b from-background to-muted/50 rounded-2xl p-6 border-2 border-primary/20 shadow-2xl ring-2 ring-primary/30 overflow-hidden" suppressHydrationWarning={true}>
+          {/* Audio Visualization - Half size */}
+          <div className="flex items-end justify-center gap-0.5 h-24 bg-gradient-to-b from-background to-muted/50 rounded-xl p-3 border border-primary/20 shadow-xl ring-1 ring-primary/30 overflow-hidden" suppressHydrationWarning={true}>
             {audioLevels.map((level, i) => (
               <div
                 key={i}
-                className="bg-gradient-to-t from-primary via-blue-500 to-cyan-400 rounded-full w-5 flex-shrink-0 audio-bar transition-all duration-100 shadow-lg relative overflow-hidden"
+                className="bg-gradient-to-t from-primary via-blue-500 to-cyan-400 rounded-full w-3 flex-shrink-0 audio-bar transition-all duration-100 shadow-md relative overflow-hidden"
                 style={{
-                  height: `${Math.min(level * 3, 140)}px`, // Even taller max height
-                  animationDelay: `${(i * 0.02).toFixed(2)}s`, // Quicker stagger
+                  height: `${Math.min(level * 3, 70)}px`,
+                  animationDelay: `${(i * 0.02).toFixed(2)}s`,
                 }}
-                title={`Level ${level}%`} // For debugging visibility
+                title={`Level ${level}%`}
               >
                 <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
               </div>
             ))}
-            <span className="absolute bottom-2 right-2 text-xs text-muted-foreground font-mono">Live Audio</span>
+            <span className="absolute bottom-1 right-1 text-xs text-muted-foreground font-mono">Live Audio</span>
           </div>
         </div>
 
