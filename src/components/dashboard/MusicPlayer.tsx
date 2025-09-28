@@ -143,7 +143,6 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
   return (
     <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px] relative", className)}>
       <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="metadata" />
-      <video ref={videoRef} src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" loop preload="metadata" />
       
       <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2 relative">
         <div className="w-7 h-7 sm:w-9 sm:h-9 bg-green-500 rounded-lg flex items-center justify-center">
@@ -176,8 +175,13 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
 
       <div className="flex-1 flex flex-col">
         <div className="flex-1 w-full min-h-18 sm:min-h-30 rounded-lg mb-2 relative overflow-hidden">
-          {currentType === 'audio' ? (
-            <div className="h-full bg-gradient-to-br from-green-600 to-green-800 relative">
+          <div 
+            className={cn(
+              "absolute inset-0 transition-transform duration-300 ease-in-out",
+              currentIndex === 0 ? 'translate-x-0' : '-translate-x-full'
+            )}
+          >
+            <div className="h-full w-full bg-gradient-to-br from-green-600 to-green-800 relative">
               <div className="absolute inset-0 bg-black/20" />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 h-14 flex justify-center items-end gap-0.5 p-1.5">
@@ -186,14 +190,21 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
                 ))}
               </div>
             </div>
-          ) : (
+          </div>
+          <div 
+            className={cn(
+              "absolute inset-0 transition-transform duration-300 ease-in-out",
+              currentIndex === 1 ? 'translate-x-0' : 'translate-x-full'
+            )}
+          >
             <video 
               ref={videoRef}
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
               className="w-full h-full object-cover"
               loop 
               preload="metadata" 
             />
-          )}
+          </div>
         </div>
         
         <div className="flex items-center gap-1 mb-1.5">
