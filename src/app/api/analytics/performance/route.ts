@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { systemPerformance, homeAssistantConnections } from '@/db/schema';
+import { systemPerformance } from '@/db/schema';
 import { eq, desc, like, and, or } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
@@ -74,43 +74,6 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Fetch machine temperature from Home Assistant if connected
-    let machineTemp: number | null = null;
-    try {
-      const connections = await db.select()
-        .from(homeAssistantConnections)
-        .limit(1);
-
-      if (connections.length > 0 && connections[0].status === 'connected') {
-        const connection = connections[0];
-        const entityId = 'sensor.machine_temperature'; // Adjust entity ID as needed for your HA setup
-        const haApiUrl = `${connection.url}/api/states/${entityId}`;
-
-        const haResponse = await fetch(haApiUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${connection.token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (haResponse.ok) {
-          const entityState = await haResponse.json();
-          machineTemp = parseFloat(entityState.state as string) || (entityState.attributes as any)?.temperature || parseFloat(entityState.attributes?.temperature as string);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch machine temperature from Home Assistant:', err);
-    }
-
-    // Add machine temperature to latest metrics
-    if (machineTemp !== null) {
-      filteredLatestMetrics['machine_temperature'] = {
-        value: machineTemp,
-        timestamp: new Date().toISOString()
-      };
-    }
-    
     return NextResponse.json({
       latest: filteredLatestMetrics,
       history: historyData,

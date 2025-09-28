@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { rooms, devices, weatherSettings, appearanceSettings, homeAssistantConnections, databaseSettings, audioLevels, backups } from '@/db/schema';
+import { rooms, devices, weatherSettings, appearanceSettings, databaseSettings, audioLevels, backups } from '@/db/schema';
 import { eq, like, and, or, sql } from 'drizzle-orm';
 
 // Define available tables and their searchable text columns
@@ -9,7 +9,6 @@ const SEARCHABLE_TABLES = {
   devices: { table: devices, textColumns: ['name', 'type'] },
   weather_settings: { table: weatherSettings, textColumns: ['provider', 'units', 'city', 'country', 'zip'] },
   appearance_settings: { table: appearanceSettings, textColumns: ['mode', 'screen_size', 'background_color'] },
-  home_assistant_connections: { table: homeAssistantConnections, textColumns: ['url', 'status'] },
   database_settings: { table: databaseSettings, textColumns: ['local_path', 'cloud_path', 'preset'] },
   audio_levels: { table: audioLevels, textColumns: [] },
   backups: { table: backups, textColumns: [] }

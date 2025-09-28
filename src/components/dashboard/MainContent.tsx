@@ -41,7 +41,7 @@ export const MainContent: React.FC<MainContentProps> = ({ setSidebarOpen }) => {
           </div>
         </div>
         
-        {/* Right: Weather + Time */}
+        {/* Right: Weather + Time + Menu */}
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Weather */}
           <div className="flex items-center gap-2 hidden sm:flex">
@@ -62,6 +62,34 @@ export const MainContent: React.FC<MainContentProps> = ({ setSidebarOpen }) => {
               Sep 24th
             </p>
           </div>
+
+          {/* Menu Popup */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-8 sm:w-8">
+                <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => console.log('Help clicked')} className="cursor-pointer">
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>Help</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => console.log('Logout clicked')} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

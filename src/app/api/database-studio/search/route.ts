@@ -10,7 +10,6 @@ const AVAILABLE_TABLES = {
   weather_settings: ['provider', 'units', 'city', 'country', 'zip'],
   appearance_settings: ['mode', 'screen_size', 'background_color'],
   backups: [],
-  home_assistant_connections: ['url', 'status'],
   database_settings: ['local_path', 'cloud_path', 'preset']
 } as const;
 

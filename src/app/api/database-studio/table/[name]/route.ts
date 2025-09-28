@@ -9,7 +9,6 @@ const ALLOWED_TABLES = [
   'weather_settings',
   'appearance_settings',
   'backups',
-  'home_assistant_connections',
   'database_settings'
 ];
 
