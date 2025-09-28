@@ -366,7 +366,7 @@ const SettingsPage = () => {
     backgroundColor: "#5c7184", // Changed from "#ffffff"
     primaryColor: "#3b82f6",
     cardPlaceholderColor: "#9ca3af",
-    navbarBackgroundColor: "#f8fafc", // Added
+    navbarBackgroundColor: "rgb(22, 143, 203)", // Updated default
     themePreset: "default"
   });
 
@@ -530,7 +530,7 @@ const SettingsPage = () => {
           root.style.setProperty('--primary', settings.primaryColor || '#3b82f6');
           root.style.setProperty('--muted-foreground', settings.cardPlaceholderColor || '#9ca3af');
           root.style.setProperty('--secondary-foreground', settings.cardPlaceholderColor || '#9ca3af');
-          root.style.setProperty('--sidebar', settings.navbarBackgroundColor || '#f8fafc');
+          root.style.setProperty('--sidebar', settings.navbarBackgroundColor || 'rgb(22, 143, 203)');
           // Calculate primary-foreground based on luminance
           const hexToRgb = (hex) => {
             let resultHex = hex.replace(/^#/, '');
@@ -666,7 +666,7 @@ const SettingsPage = () => {
             backgroundColor: appData.backgroundColor || "#5c7184", // Changed from "#ffffff"
             primaryColor: appData.primaryColor || "#3b82f6",
             cardPlaceholderColor: appData.cardPlaceholderColor || "#9ca3af",
-            navbarBackgroundColor: appData.navbarBackgroundColor || "#f8fafc", // Added
+            navbarBackgroundColor: appData.navbarBackgroundColor || "rgb(22, 143, 203)", // Updated default
             themePreset: appData.themePreset || "default"
           };
           setAppearanceSettings(appDataWithDefaults);
@@ -853,7 +853,7 @@ const SettingsPage = () => {
     const primaryColorValue = appearanceSettings.primaryColor || '#3b82f6';
     const backgroundColorValue = appearanceSettings.backgroundColor || '#5c7184'; // Changed from '#ffffff'
     const cardPlaceholderValue = appearanceSettings.cardPlaceholderColor || '#9ca3af';
-    const navbarBackgroundValue = appearanceSettings.navbarBackgroundColor || '#f8fafc'; // Added
+    const navbarBackgroundValue = appearanceSettings.navbarBackgroundColor || "rgb(22, 143, 203)"; // Updated default
     root.style.setProperty('--background', backgroundColorValue);
     root.style.setProperty('--primary', primaryColorValue);
     root.style.setProperty('--muted-foreground', cardPlaceholderValue);
@@ -1313,7 +1313,7 @@ const SettingsPage = () => {
                     <Label>Navbar Background</Label>
                     <Input
                       type="color"
-                      value={appearanceSettings.navbarBackgroundColor || '#f8fafc'}
+                      value={appearanceSettings.navbarBackgroundColor || "rgb(22, 143, 203)"} // Updated default
                       onChange={(e) => {
                         const color = e.target.value;
                         setAppearanceSettings(prev => ({ ...prev, navbarBackgroundColor: color }));
@@ -1399,7 +1399,7 @@ const SettingsPage = () => {
                         backgroundColor: "#5c7184", // Changed from "#ffffff"
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
-                        navbarBackgroundColor: "#f8fafc",
+                        navbarBackgroundColor: "rgb(22, 143, 203)", // Updated default
                         themePreset: "default"
                       });
                       setBackgroundColor("#5c7184"); // Changed from "#ffffff"
@@ -1422,7 +1422,7 @@ const SettingsPage = () => {
                         backgroundColor: "#5c7184",
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
-                        navbarBackgroundColor: "#f8fafc",
+                        navbarBackgroundColor: "rgb(22, 143, 203)", // Updated default
                         themePreset: "default"
                       });
                       toast.success("Appearance reset to defaults!");

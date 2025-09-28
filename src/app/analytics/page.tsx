@@ -72,7 +72,7 @@ const AnalyticsPage: React.FC = () => {
           root.style.setProperty('--primary', settings.primaryColor || '#3b82f6');
           root.style.setProperty('--muted-foreground', settings.cardPlaceholderColor || '#9ca3af');
           root.style.setProperty('--secondary-foreground', settings.cardPlaceholderColor || '#9ca3af');
-          root.style.setProperty('--sidebar', settings.navbarBackgroundColor || '#f8fafc');
+          root.style.setProperty('--sidebar', settings.navbarBackgroundColor || 'rgb(22, 143, 203)');
           // Calculate primary-foreground based on luminance
           const hexToRgb = (hex) => {
             let resultHex = hex.replace(/^#/, '');
