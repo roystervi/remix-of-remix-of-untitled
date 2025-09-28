@@ -214,26 +214,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           <h3 className="text-lg font-semibold mb-4 text-foreground">Set room environment</h3>
           <div className="flex gap-3 pb-2 overflow-x-auto">
             {/* Music Mode */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <Music className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Music</span>
               <span className="text-xs text-foreground">Mode</span>
             </button>
 
             {/* Cool */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <Snowflake className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Cool</span>
             </button>
 
             {/* Night */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <Moon className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Night</span>
             </button>
 
             {/* Smart Home */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <SmartHome className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Smart</span>
               <span className="text-xs text-foreground">Home</span>
@@ -241,13 +241,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           </div>
 
           {/* Analytics Link - Added */}
-          <Link href="/analytics" className="mt-4 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors">
+          <Link href="/analytics" className="mt-4 flex items-center gap-3 w-full p-3 rounded-xl bg-card border-2 border-primary/30 hover:bg-accent transition-colors">
             <BarChart3 className="w-5 h-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Analytics</span>
           </Link>
 
           {/* Settings Link */}
-          <Link href="/settings" className="mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors">
+          <Link href="/settings" className="mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card border-2 border-primary/30 hover:bg-accent transition-colors">
             <Settings className="w-5 h-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Settings</span>
           </Link>
