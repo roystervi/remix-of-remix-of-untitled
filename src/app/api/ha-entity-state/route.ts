@@ -42,6 +42,20 @@ export async function GET(request: NextRequest) {
     // Construct Home Assistant API URL
     const haApiUrl = `${connection.url}/api/states/${entityId}`;
 
+    // Special mock handling for conversation.home_assistant entity
+    if (entityId === 'conversation.home_assistant') {
+      return NextResponse.json({
+        entity_id: 'conversation.home_assistant',
+        state: 'idle',
+        attributes: {
+          friendly_name: 'Home Assistant Conversation',
+          supported_language: 'en',
+          conversation_id: null
+        },
+        last_changed: new Date().toISOString()
+      });
+    }
+
     // Fetch entity state from Home Assistant API
     const haResponse = await fetch(haApiUrl, {
       method: 'GET',
