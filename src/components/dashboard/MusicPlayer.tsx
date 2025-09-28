@@ -2,61 +2,14 @@
 
 import { Volume2, MoreHorizontal, SkipBack, SkipForward, Pause, Music, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useRef, useEffect } from 'react';
+import { useAudio } from '@/context/AudioContext';
 
 interface MusicPlayerProps {
   className?: string;
 }
 
 export const MusicPlayer = ({ className }: MusicPlayerProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.5);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = volume;
-      audio.addEventListener('timeupdate', () => {
-        setCurrentTime(audio.currentTime);
-      });
-      audio.addEventListener('loadedmetadata', () => {
-        setDuration(audio.duration);
-      });
-    }
-  }, [volume]);
-
-  const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      if (isPlaying) {
-        audio.pause();
-      } else {
-        audio.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleStop = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      setCurrentTime(0);
-      setIsPlaying(false);
-    }
-  };
-
-  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.currentTime = parseFloat(e.target.value);
-      setCurrentTime(audio.currentTime);
-    }
-  };
+  const { isPlaying, currentTime, duration, volume, togglePlayPause, handleStop, handleProgressChange, setVolume } = useAudio();
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -66,7 +19,6 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
 
   return (
     <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px]", className)}>
-      <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="metadata" />
       
       <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2">
         <div className="w-7 h-7 sm:w-9 sm:h-9 bg-green-500 rounded-lg flex items-center justify-center">
@@ -98,7 +50,7 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
             value={currentTime}
             min={0}
             max={duration || 0}
-            onChange={handleProgressChange}
+            onChange={(e) => handleProgressChange(parseFloat(e.target.value))}
             className="flex-1 h-1 bg-muted rounded-full appearance-none cursor-pointer"
             style={{
               background: `linear-gradient(to right, primary ${ (currentTime / duration) * 100 }%, muted ${ (currentTime / duration) * 100 }%)`

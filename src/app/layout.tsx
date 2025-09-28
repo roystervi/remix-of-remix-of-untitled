@@ -4,6 +4,7 @@ import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
 import { AppearanceWrapper } from '@/components/AppearanceWrapper';
+import { ClientProviders } from '@/components/ClientProviders';
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -30,7 +31,9 @@ export default function RootLayout({
           data-custom-data='{"appName": "YourApp", "version": "1.0.0", "greeting": "hi"}'
         />
         <AppearanceWrapper>
-          {children}
+          <ClientProviders>
+            {children}
+          </ClientProviders>
         </AppearanceWrapper>
         <VisualEditsMessenger />
       </body>
