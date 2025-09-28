@@ -1,6 +1,6 @@
 "use client"
 
-import { Volume2, MoreHorizontal, SkipBack, SkipForward, Pause, Music, StopCircle } from 'lucide-react';
+import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 
@@ -13,6 +13,7 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.5);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -64,15 +65,20 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
   return (
-    <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px]", className)}>
+    <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px] relative", className)}>
       <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="metadata" />
       
-      <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2 relative">
         <div className="w-7 h-7 sm:w-9 sm:h-9 bg-green-500 rounded-lg flex items-center justify-center">
           <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-white" />
         </div>
-        <MoreHorizontal className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-muted-foreground ml-auto" />
+        <Menu 
+          className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground ml-auto cursor-pointer hover:text-foreground transition-colors" 
+          onClick={toggleMenu}
+        />
       </div>
       
       <div className="mb-2">
@@ -129,6 +135,21 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
           </div>
         </div>
       </div>
+
+      {isMenuOpen && (
+        <div className="absolute top-0 right-0 mt-8 mr-2 z-10 bg-card border border-border rounded-md shadow-lg py-2 w-48">
+          <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Next Track</button>
+          <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Previous Track</button>
+          <button className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground rounded-md">Add to Queue</button>
+          <button className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive rounded-md">Clear Queue</button>
+          {isMenuOpen && (
+            <div 
+              className="fixed inset-0"
+              onClick={toggleMenu}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };
