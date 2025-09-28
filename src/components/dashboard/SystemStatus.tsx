@@ -26,7 +26,7 @@ export function SystemStatus() {
   };
 
   return (
-    <Card className="min-h-[150px]">
+    <Card className="min-h-[150px] border-2 border-primary/30">
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Server className="h-4 w-4 sm:h-5 sm:w-5" />
