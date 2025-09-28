@@ -107,7 +107,7 @@ const AnalyticsPage: React.FC = () => {
             <Skeleton className="h-10 flex-1" />
           </TabsList>
           <TabsContent value="energy" className="mt-6 space-y-4">
-            <Card>
+            <Card className="border-2 border-primary/30">
               <CardHeader>
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
@@ -137,7 +137,7 @@ const AnalyticsPage: React.FC = () => {
             Back to Dashboard
           </Button>
         </div>
-        <Card>
+        <Card className="border-2 border-primary/30">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 text-destructive">
               <AlertCircle className="h-5 w-5" />
@@ -187,7 +187,7 @@ const AnalyticsPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="energy" className="space-y-6">
-          <Card>
+          <Card className="border-2 border-primary/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -201,19 +201,19 @@ const AnalyticsPage: React.FC = () => {
               {energyData?.deviceBreakdowns?.length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-3 gap-4">
-                    <Card>
+                    <Card className="border-2 border-primary/30">
                       <CardContent className="p-4">
                         <div className="text-3xl font-bold text-primary">{energyData.totalKwh.toFixed(2)} kWh</div>
                         <p className="text-sm text-muted-foreground mt-1">Total {period.charAt(0).toUpperCase() + period.slice(1)}</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-2 border-primary/30">
                       <CardContent className="p-4">
                         <div className="text-3xl font-bold text-destructive">${energyData.totalCost.toFixed(2)}</div>
                         <p className="text-sm text-muted-foreground mt-1">Total Cost</p>
                       </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-2 border-primary/30">
                       <CardContent className="p-4">
                         <div className="text-3xl font-bold text-secondary">{energyData.avgKwh.toFixed(2)} kWh</div>
                         <p className="text-sm text-muted-foreground mt-1">Average per Entry</p>
@@ -261,7 +261,7 @@ const AnalyticsPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-6">
-          <Card>
+          <Card className="border-2 border-primary/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
@@ -311,7 +311,7 @@ const AnalyticsPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <Card>
+          <Card className="border-2 border-primary/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gauge className="h-5 w-5" />
@@ -335,7 +335,7 @@ const AnalyticsPage: React.FC = () => {
                         key.includes('time') ? `${value.value}ms` : 
                         value.value;
                       return (
-                        <Card key={key}>
+                        <Card key={key} className="border-2 border-primary/30">
                           <CardContent className="p-4">
                             <div className="flex items-center gap-3 mb-2">
                               <div className="p-2 rounded-full bg-primary/10">

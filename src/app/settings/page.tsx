@@ -162,7 +162,7 @@ const useResponsiveDesign = (initialMode: 'auto' | 'manual', initialScreenSize: 
 
 // UI Components
 const Card = ({ className = '', children, ...props }) => (
-  <div className={cn('bg-card rounded-xl border border-border shadow-sm', className)} {...props}>
+  <div className={cn('bg-card rounded-xl border-2 border-primary/30 shadow-sm', className)} {...props}>
     {children}
   </div>
 );
