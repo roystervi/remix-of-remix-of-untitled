@@ -166,8 +166,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
                   key={room.id}
                   onClick={() => router.push(`/rooms/${room.id}`)}
                   className={cn(
-                    "bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors",
-                    activeRoom?.id === room.id && "bg-primary text-primary-foreground"
+                    "border-2 border-primary/30 bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors",
+                    activeRoom?.id === room.id && "bg-primary text-primary-foreground border-primary"
                   )}
                 >
                   <Home className="w-6 h-6 mb-2 text-muted-foreground" />
@@ -177,10 +177,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
               {rooms.length < 6 && ( // Limit display to 6 including add
                 <button 
                   onClick={() => setNewRoomDialogOpen(true)}
-                  className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center hover:border-primary transition-colors"
+                  className="border-2 border-primary/30 border-dashed bg-transparent rounded-xl p-3 flex flex-col items-center hover:border-primary hover:bg-accent transition-colors"
                 >
-                  <Plus className="w-6 h-6 text-muted-foreground" />
-                  <p className="text-sm font-medium text-muted-foreground mt-1">Add new</p>
+                  <Plus className="w-6 h-6 text-primary/70" />
+                  <p className="text-sm font-medium text-primary/70 mt-1">Add new</p>
                 </button>
               )}
             </div>
