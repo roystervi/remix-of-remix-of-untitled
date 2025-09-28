@@ -75,8 +75,12 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
         <div className="w-7 h-7 sm:w-9 sm:h-9 bg-green-500 rounded-lg flex items-center justify-center">
           <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-white" />
         </div>
+        <div className="flex-1 flex justify-center items-center gap-1">
+          <SkipBack className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+          <SkipForward className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" />
+        </div>
         <Menu 
-          className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground ml-auto cursor-pointer hover:text-foreground transition-colors" 
+          className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground cursor-pointer hover:text-foreground transition-colors" 
           onClick={toggleMenu}
         />
       </div>
