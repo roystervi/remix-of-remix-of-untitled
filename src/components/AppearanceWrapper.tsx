@@ -9,6 +9,10 @@ interface AppearanceSettings {
   height: number;
   backgroundColor: string;
   primaryColor?: string;
+  cardPlaceholderColor?: string;
+  navbarBackgroundColor?: string;
+  cardRingColor?: string;
+  themePreset?: string;
 }
 
 export function AppearanceWrapper({ children }: { children: React.ReactNode }) {
@@ -58,14 +62,30 @@ export function AppearanceWrapper({ children }: { children: React.ReactNode }) {
 
     const root = document.documentElement;
     // Apply background color
-    root.style.setProperty('--background', settings.backgroundColor);
-    root.style.setProperty('--card', settings.backgroundColor);
+    root.style.setProperty('--background', settings.backgroundColor || 'rgb(92, 113, 132)');
+    root.style.setProperty('--card', settings.backgroundColor || 'rgb(92, 113, 132)');
     root.style.setProperty('--primary', settings.primaryColor || '#3b82f6');
+    
+    // Apply card placeholder colors
+    const cardPlaceholder = settings.cardPlaceholderColor || '#9ca3af';
+    root.style.setProperty('--muted-foreground', cardPlaceholder);
+    root.style.setProperty('--secondary-foreground', cardPlaceholder);
+    
+    // Apply navbar background
+    root.style.setProperty('--sidebar', settings.navbarBackgroundColor || 'rgb(22, 143, 203)');
+    
+    // Apply card ring RGB
+    const cardRingRgb = hexToRgb(settings.cardRingColor || '#3b82f6');
+    root.style.setProperty('--card-ring-rgb', `${cardRingRgb.r}, ${cardRingRgb.g}, ${cardRingRgb.b}`);
+    
     // Apply primary-foreground based on luminance
     const luminance = getLuminance(settings.primaryColor || '#3b82f6');
     root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
 
     // Apply screen class
+    if (document.body.classList.contains('screen-' + root.className.split('screen-')[1])) {
+      document.body.classList.remove('screen-' + root.className.split('screen-')[1]);
+    }
     root.className = `screen-${settings.screenSize}`;
 
     // Apply manual mode simulation
@@ -85,6 +105,10 @@ export function AppearanceWrapper({ children }: { children: React.ReactNode }) {
       root.style.setProperty('--card', '');
       root.style.setProperty('--primary', '');
       root.style.setProperty('--primary-foreground', '');
+      root.style.setProperty('--muted-foreground', '');
+      root.style.setProperty('--secondary-foreground', '');
+      root.style.setProperty('--sidebar', '');
+      root.style.setProperty('--card-ring-rgb', '');
       root.className = '';
       document.body.style.maxWidth = '';
       document.body.style.margin = '';

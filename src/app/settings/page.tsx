@@ -626,6 +626,19 @@ const SettingsPage = () => {
       if (response.ok) {
         toast.success("Appearance settings saved! Changes are live across the dashboard.");
         setLastSaves(prev => ({ ...prev, appearance: new Date().toISOString() }));
+        
+        // Clear all preview timers
+        Object.values(timers.current).forEach(timer => { if (timer) clearTimeout(timer); });
+        timers.current = { 
+          primaryColor: null, 
+          backgroundColor: null,
+          cardPlaceholderColor: null,
+          cardRingColor: null,
+          navbarBackgroundColor: null
+        };
+        
+        // Update original colors to current settings to prevent revert
+        setOriginalColors({ ...appearanceSettings });
       } else {
         const errorData = await response.json();
         if (errorData.code) {
