@@ -1,3 +1,5 @@
+"use client"
+
 import { Lightbulb, Thermometer, Lock, Volume2, Wifi, Settings, LightbulbOff, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +13,12 @@ export function DeviceControls() {
 
   const lights = devices?.filter(d => d.type === 'light') || [];
   const updateLight = updateDevice;
+  const thermostats = devices?.filter(d => d.type === 'thermostat') || [];
+  const securityDevices = devices?.filter(d => d.type === 'security') || [];
+  const appliances = devices?.filter(d => d.type === 'appliance') || [];
+  const updateThermostat = updateDevice;
+  const updateSecurity = updateDevice;
+  const updateAppliance = updateDevice;
 
   return (
     <Card className="border-card-ring col-span-1 lg:col-span-2 xl:col-span-3">

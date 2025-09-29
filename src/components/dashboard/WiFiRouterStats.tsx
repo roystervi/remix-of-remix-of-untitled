@@ -1,9 +1,10 @@
 "use client"
 
 import { Download, Upload, MoreHorizontal, Wifi, Loader2, RefreshCw, Device } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, Badge } from '@/components/ui/card';
-import { Badge as BadgeComponent } from '@/components/ui/badge';
-import { Button as ButtonComponent } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import React, { useState } from 'react';
 
 export const WiFiRouterStats = () => {
   const [signalStrength, setSignalStrength] = useState(85);

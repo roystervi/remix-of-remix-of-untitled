@@ -4,6 +4,7 @@ import { Wifi, Monitor, MoreHorizontal, Settings, RefreshCw, Loader2 } from 'luc
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import React, { useEffect, useState } from 'react';
 
 export const AccessoriesGrid = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
