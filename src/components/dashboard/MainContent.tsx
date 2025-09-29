@@ -6,6 +6,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils';
 import { LeftColumn } from './LeftColumn';
 import { RightColumn } from './RightColumn';
+import { QuickActions } from './QuickActions';
+import { SystemStatus } from './SystemStatus';
+import { WeatherCard } from './WeatherCard';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -26,7 +29,7 @@ export const MainContent: React.FC<MainContentProps> = ({ setSidebarOpen }) => {
     <div className="p-2 sm:p-4 md:p-6 h-full overflow-auto">
       {/* Unified Header - Visible on all sizes */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
-        {/* Left: Menu + Title */}
+        {/* Left: Menu + Title + QuickActions */}
         <div className="flex items-center gap-2 min-w-0">
           <button 
             onClick={() => setSidebarOpen(prev => !prev)}
@@ -35,24 +38,17 @@ export const MainContent: React.FC<MainContentProps> = ({ setSidebarOpen }) => {
           >
             <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold truncate">My Workstation</h1>
             <p className="hidden md:block text-xs md:text-sm text-muted-foreground">12 Devices running</p>
           </div>
+          <QuickActions className="hidden md:flex ml-auto" />
         </div>
         
-        {/* Right: Weather + Time + Menu */}
+        {/* Right: SystemStatus + WeatherCard + Time + Menu */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Weather */}
-          <div className="flex items-center gap-2 hidden sm:flex">
-            <Cloud className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-            <div>
-              <p className="text-xs sm:text-sm font-medium">{isLoadingWeather ? 'Loading...' : displayCondition}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {isLoadingWeather ? '...' : `${displayTemp}${unit}`}
-              </p>
-            </div>
-          </div>
+          <SystemStatus className="hidden sm:flex" />
+          <WeatherCard weather={weather} isLoading={isLoadingWeather} className="hidden sm:flex" />
           
           {/* Time */}
           <div className="text-right hidden sm:block">
