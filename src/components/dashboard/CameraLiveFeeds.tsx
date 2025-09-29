@@ -1,6 +1,6 @@
 "use client"
 
-import { Camera, WifiOff, Video, CameraOff, MapPin, Clock, Switch } from 'lucide-react';
+import { Camera, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CameraLiveFeedsProps {
@@ -14,7 +14,7 @@ const mockCamera = {
 };
 
 export const CameraLiveFeeds = ({ className }: CameraLiveFeedsProps) => (
-  <div className={cn("border-card-ring bg-card rounded-xl p-4 flex flex-col min-h-[125px] sm:min-h-[150px]", className)}>
+  <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-4 flex flex-col min-h-[125px] sm:min-h-[150px]", className)}>
     <div className="flex items-center gap-2 mb-4">
       <Camera className="w-5 h-5 text-blue-500" />
       <h3 className="text-sm font-medium text-foreground">Live Camera Feed</h3>

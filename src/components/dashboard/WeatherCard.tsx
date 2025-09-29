@@ -7,7 +7,7 @@ export function WeatherCard() {
 
   if (isLoadingWeather) {
     return (
-      <Card className="min-h-[150px] border-card-ring">
+      <Card className="min-h-[150px]">
         <CardHeader className="pb-2 sm:pb-3">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Cloud className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -24,7 +24,7 @@ export function WeatherCard() {
   const WeatherIcon = weather.condition?.includes('sunny') || weather.condition?.includes('clear') ? Sun : Cloud;
 
   return (
-    <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-card-ring min-h-[150px] border-card-ring">
+    <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-2 border-primary/30 min-h-[150px]">
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <WeatherIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />

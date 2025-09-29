@@ -1,12 +1,10 @@
-import { Wifi, Server, Smartphone, Router, Cpu, Clock, Activity, Thermometer } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Wifi, Server, Smartphone, Router } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 
 export function SystemStatus() {
-  const { systemStatus, loading, uptime, cpuUsage, memoryUsage, storageUsage, networkUsage, temperature, lastCheck } = useDashboardData();
+  const { systemStatus } = useDashboardData();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -28,123 +26,36 @@ export function SystemStatus() {
   };
 
   return (
-    <Card className="border-card-ring">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Cpu className="h-4 w-4" />
+    <Card className="min-h-[150px] border-2 border-primary/30">
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Server className="h-4 w-4 sm:h-5 sm:w-5" />
           System Status
         </CardTitle>
-        <CardDescription>Overall system health and performance</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {loading ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="space-y-1">
-                <div className="h-4 bg-muted/80 rounded w-32 animate-pulse" />
-                <div className="h-3 bg-muted/50 rounded w-24 animate-pulse" />
-              </div>
-              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="space-y-1">
-                <div className="h-4 bg-muted/80 rounded w-32 animate-pulse" />
-                <div className="h-3 bg-muted/50 rounded w-24 animate-pulse" />
-              </div>
-              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="space-y-1">
-                <div className="h-4 bg-muted/80 rounded w-32 animate-pulse" />
-                <div className="h-3 bg-muted/50 rounded w-24 animate-pulse" />
-              </div>
-              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="space-y-1">
-                <div className="h-4 bg-muted/80 rounded w-32 animate-pulse" />
-                <div className="h-3 bg-muted/50 rounded w-24 animate-pulse" />
-              </div>
-              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="space-y-1">
-                <div className="h-4 bg-muted/80 rounded w-32 animate-pulse" />
-                <div className="h-3 bg-muted/50 rounded w-24 animate-pulse" />
-              </div>
-              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-              <div>
-                <div className="font-medium">System Uptime</div>
-                <div className={`text-sm text-green-500`}>{uptime || 'Calculating...'}</div>
-              </div>
-              <Clock className="h-5 w-5 text-green-500" />
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-              <div>
-                <div className="font-medium">CPU Usage</div>
-                <div className={`text-sm text-blue-500`}>
-                  {cpuUsage ? `${cpuUsage.toFixed(1)}%` : 'N/A'}
+      <CardContent className="p-2 sm:p-4 space-y-2 sm:space-y-4">
+        {systemStatus.map((item) => {
+          const Icon = getStatusIcon(item.type);
+          return (
+            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 min-w-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1">
+                <div className="p-1 sm:p-2 rounded-md bg-accent w-full sm:w-auto">
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-medium text-sm leading-tight truncate">{item.name}</div>
+                  <div className="text-xs text-muted-foreground leading-tight">{item.details}</div>
                 </div>
               </div>
-              <Cpu className="h-5 w-5 text-blue-500" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-              <div>
-                <div className="font-medium">Memory Usage</div>
-                <div className={`text-sm text-purple-500`}>
-                  {memoryUsage ? `${memoryUsage.toFixed(1)}%` : 'N/A'}
-                </div>
+              <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
+                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${getStatusColor(item.status)}`} />
+                <Badge variant="outline" className="text-xs capitalize">
+                  {item.status}
+                </Badge>
               </div>
-              <Activity className="h-5 w-5 text-purple-500" />
             </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-              <div>
-                <div className="font-medium">Storage Usage</div>
-                <div className={`text-sm text-orange-500`}>
-                  {storageUsage ? `${storageUsage.toFixed(1)}%` : 'N/A'}
-                </div>
-              </div>
-              <Activity className="h-5 w-5 text-orange-500" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-              <div>
-                <div className="font-medium">Network Usage</div>
-                <div className={`text-sm text-indigo-500`}>
-                  {networkUsage ? `${networkUsage.toFixed(1)} Mbps` : 'N/A'}
-                </div>
-              </div>
-              <Wifi className="h-5 w-5 text-indigo-500" />
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
-              <div>
-                <div className="font-medium">Temperature</div>
-                <div className="text-sm text-red-500">{temperature || 'N/A'}°C</div>
-              </div>
-              <Thermometer className="h-5 w-5 text-red-500" />
-            </div>
-            
-            <Separator />
-            
-            <Alert>
-              <Activity className="h-4 w-4">
-                <AlertTitle>System Check Complete</AlertTitle>
-                <AlertDescription>
-                  All services are running optimally. Last check: {lastCheck || 'Never'}
-                </AlertDescription>
-              </Activity>
-            </Alert>
-          </>
-        )}
+          );
+        })}
       </CardContent>
     </Card>
   );

@@ -37,15 +37,11 @@ export const weatherSettings = sqliteTable('weather_settings', {
 
 export const appearanceSettings = sqliteTable('appearance_settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  primaryColor: text('primary_color').notNull().default('#3b82f6'),
-  backgroundColor: text('background_color').notNull().default('rgb(92, 113, 132)'),
-  cardPlaceholderColor: text('card_placeholder_color').notNull().default('#9ca3af'),
-  navbarBackgroundColor: text('navbar_background_color').notNull().default('rgb(22, 143, 203)'),
-  themePreset: text('theme_preset').notNull().default('default'),
+  mode: text('mode').notNull().default('auto'),
   screenSize: text('screen_size').notNull().default('desktop'),
   width: integer('width').notNull().default(1200),
   height: integer('height').notNull().default(800),
-  mode: text('mode').notNull().default('auto'),
+  backgroundColor: text('background_color').notNull().default('#ffffff'),
   updatedAt: text('updated_at').notNull(),
 });
 

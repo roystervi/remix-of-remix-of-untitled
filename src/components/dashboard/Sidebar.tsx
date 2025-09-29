@@ -79,18 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
 
   if (loading) {
     return (
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 w-64 transform bg-card border-r border-card-ring shadow-lg",
-          {
-            "translate-x-0": sidebarOpen || screenSize === 'desktop',
-            "-translate-x-full": !sidebarOpen && screenSize !== 'desktop',
-          }
-        )}
-        style={{
-          backgroundColor: 'rgb(var(--sidebar) / 1)',
-        }}
-      >
+      <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
         {/* Mobile Close Button */}
         {screenSize !== 'desktop' && (
           <button 
@@ -107,23 +96,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
             <p className="text-sm text-muted-foreground mt-4">Loading rooms...</p>
           </div>
         </div>
-      </aside>
+      </div>
     );
   }
 
   return (
-    <aside
-      className={cn(
-        "fixed inset-y-0 left-0 z-30 w-64 transform bg-card border-r border-card-ring shadow-lg",
-        {
-          "translate-x-0": sidebarOpen || screenSize === 'desktop',
-          "-translate-x-full": !sidebarOpen && screenSize !== 'desktop',
-        }
-      )}
-      style={{
-        backgroundColor: 'rgb(var(--sidebar) / 1)',
-      }}
-    >
+    <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
       {/* Mobile Close Button */}
       {screenSize !== 'desktop' && (
         <button 
@@ -188,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
                   key={room.id}
                   onClick={() => router.push(`/rooms/${room.id}`)}
                   className={cn(
-                    "border-2 border-card-ring bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors",
+                    "border-2 border-primary/30 bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors",
                     activeRoom?.id === room.id && "bg-primary text-primary-foreground border-primary"
                   )}
                 >
@@ -199,7 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
               {rooms.length < 6 && ( // Limit display to 6 including add
                 <button 
                   onClick={() => setNewRoomDialogOpen(true)}
-                  className="border-2 border-card-ring border-dashed bg-transparent rounded-xl p-3 flex flex-col items-center hover:border-primary hover:bg-accent transition-colors"
+                  className="border-2 border-primary/30 border-dashed bg-transparent rounded-xl p-3 flex flex-col items-center hover:border-primary hover:bg-accent transition-colors"
                 >
                   <Plus className="w-6 h-6 text-primary/70" />
                   <p className="text-sm font-medium text-primary/70 mt-1">Add new</p>
@@ -236,26 +214,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           <h3 className="text-lg font-semibold mb-4 text-foreground">Set room environment</h3>
           <div className="flex gap-3 pb-2 overflow-x-auto">
             {/* Music Mode */}
-            <button className="bg-card border-2 border-card-ring rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <Music className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Music</span>
               <span className="text-xs text-foreground">Mode</span>
             </button>
 
             {/* Cool */}
-            <button className="bg-card border-2 border-card-ring rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <Snowflake className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Cool</span>
             </button>
 
             {/* Night */}
-            <button className="bg-card border-2 border-card-ring rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <Moon className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Night</span>
             </button>
 
             {/* Smart Home */}
-            <button className="bg-card border-2 border-card-ring rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
+            <button className="bg-card border-2 border-primary/30 rounded-xl p-3 flex flex-col items-center hover:bg-accent transition-colors min-w-[60px]">
               <SmartHome className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Smart</span>
               <span className="text-xs text-foreground">Home</span>
@@ -263,18 +241,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           </div>
 
           {/* Analytics Link - Added */}
-          <Link href="/analytics" className="mt-4 flex items-center gap-3 w-full p-3 rounded-xl bg-card border-card-ring hover:bg-accent transition-colors">
+          <Link href="/analytics" className="mt-4 flex items-center gap-3 w-full p-3 rounded-xl bg-card border-2 border-primary/30 hover:bg-accent transition-colors">
             <BarChart3 className="w-5 h-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Analytics</span>
           </Link>
 
           {/* Settings Link */}
-          <Link href="/settings" className="mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card border-card-ring hover:bg-accent transition-colors">
+          <Link href="/settings" className="mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card border-2 border-primary/30 hover:bg-accent transition-colors">
             <Settings className="w-5 h-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Settings</span>
           </Link>
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

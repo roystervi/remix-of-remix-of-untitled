@@ -1,6 +1,6 @@
 "use client"
 
-import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle, ChevronLeft, ChevronRight, Play, SkipBack as SkipBackIcon, SkipForward as SkipForwardIcon, Pause as PauseIcon, Play as PlayIcon, Card, CardHeader, CardTitle, CardContent, Badge, Button, Slider, SliderTrack, SliderRange, SliderThumb, SliderValue } from 'lucide-react';
+import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 
@@ -141,7 +141,7 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
   };
 
   return (
-    <div className={cn("border-card-ring bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px] relative", className)}>
+    <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px] relative", className)}>
       <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="metadata" />
       
       <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2 relative">
