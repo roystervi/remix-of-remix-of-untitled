@@ -1,36 +1,56 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { cn } from '@/lib/utils';
+import { Zap, TrendingUp, TrendingDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
-const mockEnergyData = [
-  { time: '00:00', value: 120 },
-  { time: '04:00', value: 150 },
-  { time: '08:00', value: 200 },
-  { time: '12:00', value: 180 },
-  { time: '16:00', value: 220 },
-  { time: '20:00', value: 160 },
-  { time: '24:00', value: 140 },
-];
+export function EnergyChart() {
+  const { energyData } = useDashboardData();
 
-export const EnergyChart = ({ className }: { className?: string }) => {
-  const { devices } = useDashboardData();
-  const totalEnergy = devices.reduce((sum, d) => sum + (d.power || 0), 0);
-
+  const maxUsage = Math.max(...energyData.hourlyUsage);
+  
   return (
-    <div className={cn("border border-border rounded-lg p-4 bg-card", className)}>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold">Energy Usage</h3>
-        <span className="text-2xl font-bold text-primary">{totalEnergy} kWh</span>
-      </div>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={mockEnergyData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="value" stroke="var(--primary)" />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <Card className="min-h-[150px] sm:min-h-[200px]">
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
+          Energy Usage
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-2 sm:p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="text-center p-2 sm:p-3 rounded-lg bg-green-500/10">
+            <div className="text-lg sm:text-2xl font-bold text-green-400">{energyData.current}kW</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Current Usage</div>
+          </div>
+          <div className="text-center p-2 sm:p-3 rounded-lg bg-blue-500/10">
+            <div className="text-lg sm:text-2xl font-bold text-blue-400">{energyData.today}kWh</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Today</div>
+          </div>
+          <div className="text-center p-2 sm:p-3 rounded-lg bg-purple-500/10">
+            <div className="flex items-center justify-center gap-1 text-base sm:text-lg font-bold text-purple-400">
+              <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
+              {energyData.savings}%
+            </div>
+            <div className="text-xs sm:text-sm text-muted-foreground">vs Last Month</div>
+          </div>
+        </div>
+        
+        <div className="space-y-1 sm:space-y-2">
+          <div className="flex flex-col sm:flex-row justify-between text-xs sm:text-sm text-muted-foreground gap-1 sm:gap-0">
+            <span>24 Hour Usage</span>
+            <span>Peak: {maxUsage}kW</span>
+          </div>
+          <div className="flex items-end gap-0.5 sm:gap-1 h-16 sm:h-20">
+            {energyData.hourlyUsage.map((usage, index) => (
+              <div
+                key={index}
+                className="flex-1 bg-gradient-to-t from-yellow-500 to-yellow-300 rounded-t-sm opacity-80 hover:opacity-100 transition-opacity min-w-0"
+                style={{ height: `${(usage / maxUsage) * 100}%` }}
+                title={`${index}:00 - ${usage}kW`}
+              />
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}

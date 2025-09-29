@@ -1,31 +1,52 @@
-import { Clock, User, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Clock, Lightbulb, Lock, Thermometer, Shield } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
-export const ActivityFeed = ({ className }: { className?: string }) => {
-  const { devices } = useDashboardData();
+export function ActivityFeed() {
+  const { recentActivity } = useDashboardData();
 
-  const activities = [
-    { time: '2 min ago', icon: User, text: 'John logged in', type: 'success' },
-    { time: '5 min ago', icon: Clock, text: `Device ${devices[0]?.name || 'Light'} turned on`, type: 'info' },
-    { time: '10 min ago', icon: AlertTriangle, text: 'Low battery on sensor', type: 'warning' },
-  ];
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'light': return Lightbulb;
+      case 'lock': return Lock;
+      case 'thermostat': return Thermometer;
+      case 'security': return Shield;
+      default: return Clock;
+    }
+  };
 
   return (
-    <div className={cn("border border-border rounded-lg p-4 bg-card", className)}>
-      <h3 className="font-semibold mb-3 flex items-center gap-2">
-        <Clock className="w-4 h-4" />
-        Recent Activity
-      </h3>
-      <div className="space-y-2 max-h-48 overflow-y-auto">
-        {activities.map((activity, i) => (
-          <div key={i} className="flex items-center gap-3 text-sm">
-            <activity.icon className={`w-4 h-4 ${activity.type === 'warning' ? 'text-destructive' : 'text-muted-foreground'}`} />
-            <span className="flex-1">{activity.text}</span>
-            <span className="text-xs text-muted-foreground">{activity.time}</span>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Card className="min-h-[150px]">
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+          Recent Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-2 sm:p-4">
+        <div className="space-y-2 sm:space-y-3">
+          {recentActivity.map((activity) => {
+            const Icon = getActivityIcon(activity.type);
+            return (
+              <div key={activity.id} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3 p-1 sm:p-2 rounded-lg hover:bg-accent/50 transition-colors min-w-0">
+                <div className="p-1 sm:p-2 rounded-md bg-accent w-full sm:w-auto">
+                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm leading-tight truncate">{activity.message}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground leading-tight">{activity.location}</div>
+                </div>
+                <div className="text-right sm:self-start w-full sm:w-auto">
+                  <Badge variant="outline" className="text-xs">
+                    {activity.time}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}
