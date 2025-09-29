@@ -76,11 +76,11 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
           <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-white" />
         </div>
         <div className="flex-1 flex justify-center items-center gap-1">
-          <button className="w-4 h-4 sm:w-5 sm:h-5 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
-            <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground" />
+          <button className="w-7 h-7 sm:w-9 sm:h-9 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
+            <ChevronLeft className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-foreground" />
           </button>
-          <button className="w-4 h-4 sm:w-5 sm:h-5 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
-            <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground" />
+          <button className="w-7 h-7 sm:w-9 sm:h-9 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
+            <ChevronRight className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-foreground" />
           </button>
         </div>
         <Menu 
