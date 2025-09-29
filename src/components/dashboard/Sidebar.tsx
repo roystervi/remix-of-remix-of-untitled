@@ -79,7 +79,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
 
   if (loading) {
     return (
-      <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-30 w-64 transform bg-card border-r border-card-ring shadow-lg",
+          {
+            "translate-x-0": sidebarOpen || screenSize === 'desktop',
+            "-translate-x-full": !sidebarOpen && screenSize !== 'desktop',
+          }
+        )}
+        style={{
+          backgroundColor: 'rgb(var(--sidebar) / 1)',
+        }}
+      >
         {/* Mobile Close Button */}
         {screenSize !== 'desktop' && (
           <button 
@@ -96,12 +107,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
             <p className="text-sm text-muted-foreground mt-4">Loading rooms...</p>
           </div>
         </div>
-      </div>
+      </aside>
     );
   }
 
   return (
-    <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-30 w-64 transform bg-card border-r border-card-ring shadow-lg",
+        {
+          "translate-x-0": sidebarOpen || screenSize === 'desktop',
+          "-translate-x-full": !sidebarOpen && screenSize !== 'desktop',
+        }
+      )}
+      style={{
+        backgroundColor: 'rgb(var(--sidebar) / 1)',
+      }}
+    >
       {/* Mobile Close Button */}
       {screenSize !== 'desktop' && (
         <button 
@@ -253,6 +275,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           </Link>
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

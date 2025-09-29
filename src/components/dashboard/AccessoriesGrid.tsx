@@ -1,49 +1,111 @@
 "use client"
 
-import { Wifi, Monitor, MoreHorizontal, Settings } from 'lucide-react';
+import { Wifi, Monitor, MoreHorizontal, Settings, RefreshCw, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
-export const AccessoriesGrid = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {/* Nest Wi-Fi */}
-    <div className="border-2 border-card-ring rounded-xl p-2 sm:p-4 relative hover:bg-accent transition-colors h-24 sm:h-32 flex flex-col bg-card">
-      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-lg flex items-center justify-center mb-2 sm:mb-3">
-        <Wifi className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-      </div>
-      <div className="mt-auto">
-        <p className="text-xs sm:text-sm font-medium mb-1 text-foreground">Nest Wi-Fi</p>
-        <p className="text-xs text-muted-foreground">Running</p>
-      </div>
-      <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground absolute top-2 sm:top-4 right-2 sm:right-4" />
-    </div>
+export const AccessoriesGrid = () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [gridView, setGridView] = useState(false);
+  const [accessories, setAccessories] = useState([]);
 
-    {/* Sony TV */}
-    <div className="border-2 border-card-ring rounded-xl p-2 sm:p-4 relative hover:bg-accent transition-colors h-24 sm:h-32 flex flex-col bg-card">
-      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center mb-2 sm:mb-3">
-        <Monitor className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-      </div>
-      <div className="mt-auto">
-        <p className="text-xs sm:text-sm font-medium mb-1 text-foreground">Sony TV</p>
-        <p className="text-xs text-muted-foreground">Running</p>
-      </div>
-      <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground absolute top-2 sm:top-4 right-2 sm:right-4" />
-    </div>
+  const getAccessoryIcon = (accessory) => {
+    switch (accessory.type) {
+      case 'wifi':
+        return <Wifi className="w-4 h-4 text-primary" />;
+      case 'tv':
+        return <Monitor className="w-4 h-4 text-blue-500" />;
+      case 'router':
+        return <div className="w-4 h-3 bg-muted rounded-sm flex flex-col justify-center">
+          <div className="h-px bg-muted mx-0.5" />
+          <div className="h-px bg-muted mx-0.5 mt-0.5" />
+          <div className="h-px bg-muted mx-0.5 mt-0.5" />
+        </div>;
+      default:
+        return <MoreHorizontal className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
 
-    {/* Router */}
-    <div className="border-2 border-card-ring rounded-xl p-2 sm:p-4 relative hover:bg-accent transition-colors h-24 sm:h-32 flex flex-col bg-card">
-      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-lg flex items-center justify-center mb-2 sm:mb-3">
-        <div className="w-4 h-3 sm:w-5 sm:h-3 bg-background rounded-sm flex flex-col justify-center">
-          <div className="h-px bg-muted mx-0.5 sm:mx-1" />
-          <div className="h-px bg-muted mx-0.5 sm:mx-1 mt-0.5 sm:mt-1" />
-          <div className="h-px bg-muted mx-0.5 sm:mx-1 mt-0.5 sm:mt-1" />
-        </div>
-      </div>
-      <div className="mt-auto">
-        <p className="text-xs sm:text-sm font-medium mb-1 text-foreground">Router</p>
-        <p className="text-xs text-muted-foreground">Turned off</p>
-      </div>
-      <MoreHorizontal className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground absolute top-2 sm:top-4 right-2 sm:right-4" />
-    </div>
-  </div>
-);
+  const toggleAccessory = (id) => {
+    setAccessories(prev => prev.map(accessory => 
+      accessory.id === id ? { ...accessory, active: !accessory.active } : accessory
+    ));
+  };
+
+  const refreshAccessories = async () => {
+    setIsRefreshing(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setAccessories([
+        { id: 'wifi', name: 'Nest Wi-Fi', type: 'wifi', status: 'Running', active: true },
+        { id: 'tv', name: 'Sony TV', type: 'tv', status: 'Running', active: true },
+        { id: 'router', name: 'Router', type: 'router', status: 'Turned off', active: false },
+      ]);
+    } catch (error) {
+      console.error('Error refreshing accessories:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshAccessories();
+  }, []);
+
+  return (
+    <Card className="border-card-ring">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between pb-2">
+          Accessories
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-muted-foreground">({accessories.length})</span>
+            <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        {isRefreshing ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span className="text-sm text-muted-foreground">Refreshing...</span>
+          </div>
+        ) : gridView ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-3">
+            {accessories.map((accessory) => (
+              <div key={accessory.id} className="border rounded-lg p-3 bg-card">
+                <div className="flex items-center justify-center mb-2">
+                  {getAccessoryIcon(accessory)}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium">{accessory.name}</p>
+                  <p className="text-xs text-muted-foreground">{accessory.status}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2 p-3">
+            {accessories.map((accessory) => (
+              <div key={accessory.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent">
+                <div className="flex items-center gap-3">
+                  {getAccessoryIcon(accessory)}
+                  <div>
+                    <p className="font-medium">{accessory.name}</p>
+                    <p className="text-sm text-muted-foreground">{accessory.status}</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={accessory.active}
+                  onCheckedChange={() => toggleAccessory(accessory.id)}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};

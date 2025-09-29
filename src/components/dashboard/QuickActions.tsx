@@ -6,10 +6,14 @@ import {
   Music, 
   Lightbulb,
   Lock,
-  Coffee
+  Coffee,
+  Zap,
+  Loader2
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const quickActions = [
   { id: 'good-night', label: 'Good Night', icon: Moon, color: 'bg-blue-500' },
@@ -23,27 +27,43 @@ const quickActions = [
 export function QuickActions() {
   return (
     <Card className="border-card-ring">
-      <CardHeader className="pb-2 sm:pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-          <Home className="h-4 w-4 sm:h-5 sm:w-5" />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Zap className="h-4 w-4" />
           Quick Actions
         </CardTitle>
+        <CardDescription>One-tap controls for common tasks</CardDescription>
       </CardHeader>
-      <CardContent className="p-2 sm:p-4">
-        <div className="grid grid-cols-2 gap-1 sm:gap-3">
-          {quickActions.map((action) => (
+      <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {quickActions.map((action) => (
+          <motion.div
+            key={action.id}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="group"
+          >
             <Button
-              key={action.id}
               variant="outline"
-              className="h-12 sm:h-16 flex flex-col gap-1 sm:gap-2 hover:bg-accent hover:scale-105 transition-all text-xs"
+              size="lg"
+              className={cn(
+                "h-20 w-full flex-col gap-2 justify-center p-0 group-hover:bg-accent",
+                action.active && "border-primary/50 bg-primary/5 text-primary",
+                action.loading && "animate-pulse opacity-50"
+              )}
+              onClick={() => handleQuickAction(action.id)}
+              disabled={action.loading}
             >
-              <div className={`p-1 sm:p-2 rounded-lg ${action.color}`}>
-                <action.icon className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-              </div>
-              <span className="font-medium leading-tight truncate">{action.label}</span>
+              <action.icon className={cn("h-5 w-5", {
+                "text-primary group-hover:text-primary/80": action.active,
+                "text-muted-foreground group-hover:text-primary": !action.active
+              })} />
+              <span className="text-xs font-medium">{action.label}</span>
+              {action.loading && (
+                <Loader2 className="h-3 w-3 absolute top-1 right-1 animate-spin" />
+              )}
             </Button>
-          ))}
-        </div>
+          </motion.div>
+        ))}
       </CardContent>
     </Card>
   );

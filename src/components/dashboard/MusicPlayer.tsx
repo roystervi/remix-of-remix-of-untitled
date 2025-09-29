@@ -1,6 +1,6 @@
 "use client"
 
-import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Volume2, Menu, SkipBack, SkipForward, Pause, Music, StopCircle, ChevronLeft, ChevronRight, Play, SkipBack as SkipBackIcon, SkipForward as SkipForwardIcon, Pause as PauseIcon, Play as PlayIcon, Card, CardHeader, CardTitle, CardContent, Badge, Button, Slider, SliderTrack, SliderRange, SliderThumb, SliderValue } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useRef, useEffect } from 'react';
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { Camera, WifiOff } from 'lucide-react';
+import { Camera, WifiOff, Video, CameraOff, MapPin, Clock, Switch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CameraLiveFeedsProps {

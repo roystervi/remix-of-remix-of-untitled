@@ -1,10 +1,10 @@
-import { Wifi, Server, Smartphone, Router } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Wifi, Server, Smartphone, Router, Cpu, Clock, Activity, Alert, AlertTitle, AlertDescription, Separator } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
 export function SystemStatus() {
-  const { systemStatus } = useDashboardData();
+  const { systemStatus, loading, uptime, cpuUsage, memoryUsage, storageUsage, networkUsage, temperature, lastCheck } = useDashboardData();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -27,35 +27,59 @@ export function SystemStatus() {
 
   return (
     <Card className="border-card-ring">
-      <CardHeader className="pb-2 sm:pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-          <Server className="h-4 w-4 sm:h-5 sm:w-5" />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Cpu className="h-4 w-4" />
           System Status
         </CardTitle>
+        <CardDescription>Overall system health and performance</CardDescription>
       </CardHeader>
-      <CardContent className="p-2 sm:p-4 space-y-2 sm:space-y-4">
-        {systemStatus.map((item) => {
-          const Icon = getStatusIcon(item.type);
-          return (
-            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 min-w-0">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1">
-                <div className="p-1 sm:p-2 rounded-md bg-accent w-full sm:w-auto">
-                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="font-medium text-sm leading-tight truncate">{item.name}</div>
-                  <div className="text-xs text-muted-foreground leading-tight">{item.details}</div>
-                </div>
+      <CardContent className="space-y-4">
+        {loading ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div className="space-y-1">
+                <div className="h-4 bg-muted/80 rounded w-32 animate-pulse" />
+                <div className="h-3 bg-muted/50 rounded w-24 animate-pulse" />
               </div>
-              <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
-                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${getStatusColor(item.status)}`} />
-                <Badge variant="outline" className="text-xs capitalize">
-                  {item.status}
-                </Badge>
-              </div>
+              <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
             </div>
-          );
-        })}
+            {/* Repeat for other statuses */}
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+              <div>
+                <div className="font-medium">System Uptime</div>
+                <div className={`text-sm ${getStatusColor('uptime')}`}>{uptime || 'Calculating...'}</div>
+              </div>
+              <Clock className={`h-5 w-5 ${getStatusColor('uptime')}`} />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent">
+              <div>
+                <div className="font-medium">CPU Usage</div>
+                <div className={`text-sm ${getStatusColor('cpu')}`}>
+                  {cpuUsage ? `${cpuUsage.toFixed(1)}%` : 'N/A'}
+                </div>
+              </div>
+              <Cpu className={`h-5 w-5 ${getStatusColor('cpu')}`} />
+            </div>
+            
+            {/* Similar for Memory, Storage, Network, Temperature */}
+            
+            <Separator />
+            
+            <Alert>
+              <Activity className="h-4 w-4">
+                <AlertTitle>System Check Complete</AlertTitle>
+                <AlertDescription>
+                  All services are running optimally. Last check: {lastCheck || 'Never'}
+                </AlertDescription>
+              </Activity>
+            </Alert>
+          </>
+        )}
       </CardContent>
     </Card>
   );
