@@ -162,7 +162,7 @@ const useResponsiveDesign = (initialMode: 'auto' | 'manual', initialScreenSize: 
 
 // UI Components
 const Card = ({ className = '', children, ...props }) => (
-  <div className={cn('bg-card rounded-xl border-2 border-primary/30 shadow-sm', className)} {...props}>
+  <div className={cn('bg-card rounded-xl border-card-ring shadow-sm', className)} {...props}>
     {children}
   </div>
 );
@@ -367,6 +367,7 @@ const SettingsPage = () => {
     primaryColor: "#3b82f6",
     cardPlaceholderColor: "#9ca3af",
     navbarBackgroundColor: "rgb(22, 143, 203)", // Updated default
+    cardRingColor: "#3b82f6",
     themePreset: "default"
   });
 
@@ -377,7 +378,9 @@ const SettingsPage = () => {
   const timers = useRef({ 
     primaryColor: null, 
     backgroundColor: null,
-    cardPlaceholderColor: null
+    cardPlaceholderColor: null,
+    cardRingColor: null, // New
+    navbarBackgroundColor: null
   });
   const [originalColors, setOriginalColors] = useState(null);
 
@@ -531,29 +534,12 @@ const SettingsPage = () => {
           root.style.setProperty('--muted-foreground', settings.cardPlaceholderColor || '#9ca3af');
           root.style.setProperty('--secondary-foreground', settings.cardPlaceholderColor || '#9ca3af');
           root.style.setProperty('--sidebar', settings.navbarBackgroundColor || 'rgb(22, 143, 203)');
+          
+          // New: Set card ring RGB
+          const cardRingRgb = hexToRgb(settings.cardRingColor || '#3b82f6');
+          root.style.setProperty('--card-ring-rgb', `${cardRingRgb.r} ${cardRingRgb.g} ${cardRingRgb.b}`);
+          
           // Calculate primary-foreground based on luminance
-          const hexToRgb = (hex) => {
-            let resultHex = hex.replace(/^#/, '');
-            let r, g, b;
-            if (resultHex.length === 3) {
-              r = parseInt(resultHex[0] + resultHex[0], 16);
-              g = parseInt(resultHex[1] + resultHex[1], 16);
-              b = parseInt(resultHex[2] + resultHex[2], 16);
-            } else if (resultHex.length === 6) {
-              r = parseInt(resultHex.substring(0, 2), 16);
-              g = parseInt(resultHex.substring(2, 4), 16);
-              b = parseInt(resultHex.substring(4, 6), 16);
-            }
-            return { r, g, b };
-          };
-          const getLuminance = (hex) => {
-            const rgb = hexToRgb(hex);
-            const [r, g, b] = [rgb.r / 255, rgb.g / 255, rgb.b / 255].map(c => {
-              if (c <= 0.03928) return c / 12.92;
-              return Math.pow((c + 0.055) / 1.055, 2.4);
-            });
-            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-          };
           const primaryColor = settings.primaryColor || '#3b82f6';
           const luminance = getLuminance(primaryColor);
           root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
@@ -591,6 +577,21 @@ const SettingsPage = () => {
   const onBackgroundChange = (color: string) => {
     setBackgroundColor(color);
     setAppearanceSettings(prev => ({ ...prev, backgroundColor: color }));
+  };
+
+  const onCardRingColorChange = (color: string) => {
+    setAppearanceSettings(prev => ({ ...prev, cardRingColor: color }));
+    const rgb = hexToRgb(color);
+    document.documentElement.style.setProperty('--card-ring-rgb', `${rgb.r} ${rgb.g} ${rgb.b}`);
+    
+    if (originalColors && color !== originalColors.cardRingColor) {
+      if (timers.current.cardRingColor) clearTimeout(timers.current.cardRingColor);
+      timers.current.cardRingColor = setTimeout(() => {
+        setAppearanceSettings(prev => ({ ...prev, cardRingColor: originalColors.cardRingColor }));
+        const originalRgb = hexToRgb(originalColors.cardRingColor);
+        document.documentElement.style.setProperty('--card-ring-rgb', `${originalRgb.r} ${originalRgb.g} ${originalRgb.b}`);
+      }, 30000);
+    }
   };
 
   const handleSaveAppearance = async () => {
@@ -667,6 +668,7 @@ const SettingsPage = () => {
             primaryColor: appData.primaryColor || "#3b82f6",
             cardPlaceholderColor: appData.cardPlaceholderColor || "#9ca3af",
             navbarBackgroundColor: appData.navbarBackgroundColor || "rgb(22, 143, 203)", // Updated default
+            cardRingColor: appData.cardRingColor || "#3b82f6",
             themePreset: appData.themePreset || "default"
           };
           setAppearanceSettings(appDataWithDefaults);
@@ -854,14 +856,16 @@ const SettingsPage = () => {
     const backgroundColorValue = appearanceSettings.backgroundColor || '#5c7184'; // Changed from '#ffffff'
     const cardPlaceholderValue = appearanceSettings.cardPlaceholderColor || '#9ca3af';
     const navbarBackgroundValue = appearanceSettings.navbarBackgroundColor || "rgb(22, 143, 203)"; // Updated default
+    const cardRingRgb = hexToRgb(appearanceSettings.cardRingColor || '#3b82f6');
     root.style.setProperty('--background', backgroundColorValue);
     root.style.setProperty('--primary', primaryColorValue);
     root.style.setProperty('--muted-foreground', cardPlaceholderValue);
     root.style.setProperty('--secondary-foreground', cardPlaceholderValue);
     root.style.setProperty('--sidebar', navbarBackgroundValue); // Added
+    root.style.setProperty('--card-ring-rgb', `${cardRingRgb.r}, ${cardRingRgb.g}, ${cardRingRgb.b}`);
     const luminance = getLuminance(primaryColorValue);
     root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
-  }, [appearanceSettings.backgroundColor, appearanceSettings.primaryColor, appearanceSettings.cardPlaceholderColor, appearanceSettings.navbarBackgroundColor]);
+  }, [appearanceSettings.backgroundColor, appearanceSettings.primaryColor, appearanceSettings.cardPlaceholderColor, appearanceSettings.navbarBackgroundColor, appearanceSettings.cardRingColor]);
 
   // Add these states in the SettingsPage component, after existing states
   const [tables, setTables] = useState([]);
@@ -1199,11 +1203,11 @@ const SettingsPage = () => {
                   <Label>Theme Preset</Label>
                   <Select value={appearanceSettings.themePreset || 'default'} onValueChange={(value) => {
                     const presets = [
-                      { name: 'Default', primary: '#3b82f6', background: '#ffffff', cardPlaceholder: '#9ca3af' },
-                      { name: 'Green', primary: '#10b981', background: '#f0fdf4', cardPlaceholder: '#6ee7b7' },
-                      { name: 'Purple', primary: '#8b5cf6', background: '#faf5ff', cardPlaceholder: '#c4b5fd' },
-                      { name: 'Red', primary: '#ef4444', background: '#fef2f2', cardPlaceholder: '#fca5a5' },
-                      { name: 'Orange', primary: '#f59e0b', background: '#fff7ed', cardPlaceholder: '#fdba74' }
+                      { name: 'Default', primary: '#3b82f6', background: '#ffffff', cardPlaceholder: '#9ca3af', cardRing: '#3b82f6' },
+                      { name: 'Green', primary: '#10b981', background: '#f0fdf4', cardPlaceholder: '#6ee7b7', cardRing: '#10b981' },
+                      { name: 'Purple', primary: '#8b5cf6', background: '#faf5ff', cardPlaceholder: '#c4b5fd', cardRing: '#8b5cf6' },
+                      { name: 'Red', primary: '#ef4444', background: '#fef2f2', cardPlaceholder: '#fca5a5', cardRing: '#ef4444' },
+                      { name: 'Orange', primary: '#f59e0b', background: '#fff7ed', cardPlaceholder: '#fdba74', cardRing: '#f59e0b' }
                     ];
                     const preset = presets.find(p => p.name.toLowerCase() === value.toLowerCase());
                     if (preset) {
@@ -1212,7 +1216,8 @@ const SettingsPage = () => {
                         themePreset: value,
                         primaryColor: preset.primary,
                         backgroundColor: preset.background,
-                        cardPlaceholderColor: preset.cardPlaceholder
+                        cardPlaceholderColor: preset.cardPlaceholder,
+                        cardRingColor: preset.cardRing
                       }));
                       // Update CSS vars
                       const root = document.documentElement;
@@ -1220,6 +1225,8 @@ const SettingsPage = () => {
                       root.style.setProperty('--background', preset.background);
                       root.style.setProperty('--muted-foreground', preset.cardPlaceholder);
                       root.style.setProperty('--secondary-foreground', preset.cardPlaceholder);
+                      const ringRgb = hexToRgb(preset.cardRing);
+                      root.style.setProperty('--card-ring-rgb', `${ringRgb.r}, ${ringRgb.g}, ${ringRgb.b}`);
                       const l = getLuminance(preset.primary);
                       root.style.setProperty('--primary-foreground', l < 0.5 ? '#ffffff' : '#000000');
                     }
@@ -1229,11 +1236,11 @@ const SettingsPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {[
-                        { name: 'Default', primary: '#3b82f6', background: '#ffffff', cardPlaceholder: '#9ca3af' },
-                        { name: 'Green', primary: '#10b981', background: '#f0fdf4', cardPlaceholder: '#6ee7b7' },
-                        { name: 'Purple', primary: '#8b5cf6', background: '#faf5ff', cardPlaceholder: '#c4b5fd' },
-                        { name: 'Red', primary: '#ef4444', background: '#fef2f2', cardPlaceholder: '#fca5a5' },
-                        { name: 'Orange', primary: '#f59e0b', background: '#fff7ed', cardPlaceholder: '#fdba74' }
+                        { name: 'Default', primary: '#3b82f6', background: '#ffffff', cardPlaceholder: '#9ca3af', cardRing: '#3b82f6' },
+                        { name: 'Green', primary: '#10b981', background: '#f0fdf4', cardPlaceholder: '#6ee7b7', cardRing: '#10b981' },
+                        { name: 'Purple', primary: '#8b5cf6', background: '#faf5ff', cardPlaceholder: '#c4b5fd', cardRing: '#8b5cf6' },
+                        { name: 'Red', primary: '#ef4444', background: '#fef2f2', cardPlaceholder: '#fca5a5', cardRing: '#ef4444' },
+                        { name: 'Orange', primary: '#f59e0b', background: '#fff7ed', cardPlaceholder: '#fdba74', cardRing: '#f59e0b' }
                       ].map(p => (
                         <SelectItem key={p.name} value={p.name.toLowerCase()}>
                           {p.name}
@@ -1244,7 +1251,7 @@ const SettingsPage = () => {
                   <p className="text-sm text-muted-foreground">Select a pre-made theme to quickly customize colors</p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-5 gap-4">
                   <div className="space-y-2">
                     <Label>Primary Color</Label>
                     <Input
@@ -1329,6 +1336,27 @@ const SettingsPage = () => {
                       className="w-full h-12"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Card Ring Color</Label>
+                    <Input
+                      type="color"
+                      value={appearanceSettings.cardRingColor || '#3b82f6'}
+                      onChange={(e) => {
+                        const color = e.target.value;
+                        setAppearanceSettings(prev => ({ ...prev, cardRingColor: color }));
+                        const ringRgb = hexToRgb(color);
+                        document.documentElement.style.setProperty('--card-ring-rgb', `${ringRgb.r}, ${ringRgb.g}, ${ringRgb.b}`);
+                        
+                        if (originalColors && e.target.value !== originalColors.cardRingColor) {
+                          if (timers.current.cardRingColor) clearTimeout(timers.current.cardRingColor);
+                          timers.current.cardRingColor = setTimeout(() => {
+                            setAppearanceSettings(prev => ({ ...prev, cardRingColor: originalColors.cardRingColor }));
+                          }, 30000);
+                        }
+                      }}
+                      className="w-full h-12"
+                    />
+                  </div>
                 </div>
 
                 <div className="p-4 rounded-lg border" style={{ backgroundColor: appearanceSettings.backgroundColor || '#5c7184' }}>
@@ -1400,6 +1428,7 @@ const SettingsPage = () => {
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
                         navbarBackgroundColor: "rgb(22, 143, 203)", // Updated default
+                        cardRingColor: "#3b82f6",
                         themePreset: "default"
                       });
                       setBackgroundColor("#5c7184"); // Changed from "#ffffff"
@@ -1410,10 +1439,11 @@ const SettingsPage = () => {
                       root.style.setProperty('--muted-foreground', '#9ca3af');
                       root.style.setProperty('--secondary-foreground', '#9ca3af');
                       root.style.setProperty('--sidebar', '#f8fafc');
+                      root.style.setProperty('--card-ring-rgb', '59, 130, 246');
                       const luminance = getLuminance('#3b82f6');
                       root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
                       Object.values(timers.current).forEach(timer => { if (timer) clearTimeout(timer); });
-                      timers.current = { primaryColor: null, backgroundColor: null, cardPlaceholderColor: null, navbarBackgroundColor: null };  // Reset timers
+                      timers.current = { primaryColor: null, backgroundColor: null, cardPlaceholderColor: null, navbarBackgroundColor: null, cardRingColor: null };  // Reset timers
                       setOriginalColors({
                         mode: 'auto',
                         screenSize: 'desktop',
@@ -1423,6 +1453,7 @@ const SettingsPage = () => {
                         primaryColor: "#3b82f6",
                         cardPlaceholderColor: "#9ca3af",
                         navbarBackgroundColor: "rgb(22, 143, 203)", // Updated default
+                        cardRingColor: "#3b82f6",
                         themePreset: "default"
                       });
                       toast.success("Appearance reset to defaults!");

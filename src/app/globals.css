@@ -1,3 +1,7 @@
+/* Updated: 2025-09-29T02:40:27.876Z */
+/* Updated: 2025-09-28T21:09:50.488Z */
+/* Updated: 2025-09-28T20:05:21.066Z */
+/* Updated: 2025-09-28T19:23:14.944Z */
 /* Updated: 2025-09-28T17:35:13.499Z */
 /* Updated: 2025-09-28T15:15:14.945Z */
 /* Updated: 2025-09-28T02:13:55.834Z */
@@ -177,6 +181,11 @@
   
   .audio-bar {
     animation: audioBar 0.5s ease-in-out infinite;
+  }
+
+  /* Custom border for card rings */
+  .border-card-ring {
+    border: 2px solid rgb(var(--card-ring-rgb) / 0.3);
   }
 }
 
