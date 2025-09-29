@@ -1,6 +1,7 @@
 import { Zap, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { cn } from '@/lib/utils';
 
 export function EnergyChart() {
   const { energyData } = useDashboardData();
@@ -8,7 +9,7 @@ export function EnergyChart() {
   const maxUsage = Math.max(...energyData.hourlyUsage);
   
   return (
-    <Card className="min-h-[150px] sm:min-h-[200px] border-2 border-primary/30">
+    <Card className="min-h-[150px] sm:min-h-[200px] border-card-ring">
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />

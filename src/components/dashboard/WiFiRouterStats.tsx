@@ -3,7 +3,7 @@
 import { Download, Upload, MoreHorizontal, Wifi } from 'lucide-react';
 
 export const WiFiRouterStats = () => (
-  <div className="border-2 border-primary/30 bg-card rounded-xl p-2 sm:p-4 flex flex-col flex-1 min-h-[120px] sm:min-h-[150px]">
+  <div className="border-card-ring bg-card rounded-xl p-2 sm:p-4 flex flex-col flex-1 min-h-[120px] sm:min-h-[150px]">
     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
       <h3 className="text-base sm:text-lg font-semibold text-foreground text-center sm:text-left">Tp-Link Wifi Router</h3>
       <MoreHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground ml-auto" />

@@ -4,7 +4,7 @@ import { Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const ElectricityChart = ({ className }: { className?: string }) => (
-  <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-2 sm:p-4 flex-1 flex flex-col min-h-[200px]", className)}>
+  <div className={cn("border-card-ring bg-card rounded-xl p-2 sm:p-4 flex-1 flex flex-col min-h-[200px]", className)}>
     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
       <h3 className="text-base sm:text-lg font-semibold text-foreground text-center sm:text-left">ELECTRICITY CONSUMED</h3>
       <div className="flex items-center gap-2">

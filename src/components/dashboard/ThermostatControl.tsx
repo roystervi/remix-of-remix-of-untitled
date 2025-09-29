@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils"
 
 export const ThermostatControl = ({ className }: { className?: string }) => (
-  <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-2 sm:p-4 flex flex-col h-full", className)}>
+  <div className={cn("border-card-ring bg-card rounded-xl p-2 sm:p-4 flex flex-col h-full", className)}>
     <div className="flex items-center justify-between mb-4">
       <h3 className="text-base sm:text-lg font-semibold text-foreground">THERMOSTAT</h3>
       <div className="flex items-center gap-2">
