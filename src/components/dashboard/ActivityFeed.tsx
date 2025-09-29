@@ -1,20 +1,26 @@
-import { Clock, Lightbulb, Lock, Thermometer, Shield, Activity, Button } from 'lucide-react';
+import { Clock, Lightbulb, Lock, Thermometer, Shield, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { useState } from 'react';
 
 export function ActivityFeed() {
-  const { recentActivity } = useDashboardData();
+  const [showAll, setShowAll] = useState(false);
+  const { recentActivity, loading } = useDashboardData();
+  const filteredActivities = showAll ? recentActivity : recentActivity?.slice(0, 5) || [];
 
-  const getActivityIcon = (type: string) => {
+  const getActivityColor = (type: string) => {
     switch (type) {
-      case 'light': return Lightbulb;
-      case 'lock': return Lock;
-      case 'thermostat': return Thermometer;
-      case 'security': return Shield;
-      default: return Clock;
+      case 'light': return 'bg-yellow-500';
+      case 'lock': return 'bg-blue-500';
+      case 'thermostat': return 'bg-red-500';
+      case 'security': return 'bg-green-500';
+      default: return 'bg-gray-500';
     }
   };
+
+  if (recentActivity === undefined) return <div>Loading...</div>;
 
   return (
     <Card className="border-card-ring col-span-1 sm:col-span-2 lg:col-span-3">

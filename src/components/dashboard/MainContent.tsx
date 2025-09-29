@@ -9,6 +9,17 @@ import { RightColumn } from './RightColumn';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { QuickActions } from './QuickActions';
+import { SystemStatus } from './SystemStatus';
+import { ActivityFeed } from './ActivityFeed';
+import { WeatherCard } from './WeatherCard';
+import { EnergyChart } from './EnergyChart';
+import { ElectricityChart } from './ElectricityChart';
+import { CameraLiveFeeds } from './CameraLiveFeeds';
+import { DeviceControls } from './DeviceControls';
+import { AccessoriesGrid } from './AccessoriesGrid';
+import { LEDStripsLight } from './LEDStripsLight';
+import { MusicPlayer } from './MusicPlayer';
 
 interface MainContentProps {
   setSidebarOpen: (open: boolean) => void;
