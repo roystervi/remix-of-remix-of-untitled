@@ -22,7 +22,7 @@ const quickActions = [
 
 export function QuickActions() {
   return (
-    <Card className="min-h-[200px] border-2 border-primary/30">
+    <Card className="min-h-[200px]">
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <Home className="h-4 w-4 sm:h-5 sm:w-5" />

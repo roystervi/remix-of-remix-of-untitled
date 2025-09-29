@@ -2,29 +2,19 @@ import { db } from '@/db';
 import { rooms } from '@/db/schema';
 
 async function main() {
-    const currentTimestamp = new Date().toISOString();
-    
     const sampleRooms = [
         {
-            name: 'Entrance',
-            createdAt: currentTimestamp,
-        },
-        {
-            name: 'Backyard',
-            createdAt: currentTimestamp,
-        },
-        {
             name: 'Living Room',
-            createdAt: currentTimestamp,
+            createdAt: new Date('2024-01-15T10:30:00Z').toISOString(),
         },
         {
-            name: 'Front Room',
-            createdAt: currentTimestamp,
+            name: 'Kitchen',
+            createdAt: new Date('2024-01-16T14:45:00Z').toISOString(),
         },
         {
-            name: 'My Workstation',
-            createdAt: currentTimestamp,
-        },
+            name: 'Bedroom',
+            createdAt: new Date('2024-01-17T09:15:00Z').toISOString(),
+        }
     ];
 
     await db.insert(rooms).values(sampleRooms);

@@ -14,113 +14,48 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const sources = ['audio', 'video'] as const;
-  const currentType = sources[currentIndex];
-  const titles = ['Rainy day relaxing sound', 'Big Buck Bunny Video'];
-  const subtitles = ['Currently playing audio', 'Playing video'];
-  const barHeights = [25, 60, 45, 80, 35, 70];
   const audioRef = useRef<HTMLAudioElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Volume effect
-  useEffect(() => {
-    [audioRef.current, videoRef.current].forEach(media => {
-      if (media) media.volume = volume;
-    });
-  }, [volume]);
-
-  // Switch media effect
-  useEffect(() => {
-    if (audioRef.current && currentType !== 'audio') {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    if (videoRef.current && currentType !== 'video') {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-    setCurrentTime(0);
-    setDuration(0);
-    const currentMedia = currentType === 'audio' ? audioRef.current : videoRef.current;
-    if (currentMedia && isPlaying) {
-      currentMedia.play().catch(e => console.log('Play failed', e));
-    }
-  }, [currentType, volume, isPlaying]);
-
-  // Audio listeners
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
-    const handleTimeUpdate = () => {
-      if (currentType === 'audio') setCurrentTime(audio.currentTime);
-    };
-    const handleLoadedMetadata = () => {
-      if (currentType === 'audio') setDuration(audio.duration || 0);
-    };
-    const handleEnded = () => {
-      if (currentType === 'audio') setIsPlaying(false);
-    };
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, []); // Attaches once
-
-  // Video listeners
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const handleTimeUpdate = () => {
-      if (currentType === 'video') setCurrentTime(video.currentTime);
-    };
-    const handleLoadedMetadata = () => {
-      if (currentType === 'video') setDuration(video.duration || 0);
-    };
-    const handleEnded = () => {
-      if (currentType === 'video') setIsPlaying(false);
-    };
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('ended', handleEnded);
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('ended', handleEnded);
-    };
-  }, []); // Attaches once
+    if (audio) {
+      audio.volume = volume;
+      audio.addEventListener('timeupdate', () => {
+        setCurrentTime(audio.currentTime);
+      });
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+      });
+    }
+  }, [volume]);
 
   const togglePlayPause = () => {
-    const mediaEl = currentType === 'audio' ? audioRef.current : videoRef.current;
-    if (mediaEl) {
+    const audio = audioRef.current;
+    if (audio) {
       if (isPlaying) {
-        mediaEl.pause();
+        audio.pause();
       } else {
-        mediaEl.play().catch(e => console.log('Play failed', e));
+        audio.play();
       }
       setIsPlaying(!isPlaying);
     }
   };
 
   const handleStop = () => {
-    const mediaEl = currentType === 'audio' ? audioRef.current : videoRef.current;
-    if (mediaEl) {
-      mediaEl.pause();
-      mediaEl.currentTime = 0;
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
       setCurrentTime(0);
       setIsPlaying(false);
     }
   };
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const mediaEl = currentType === 'audio' ? audioRef.current : videoRef.current;
-    if (mediaEl) {
-      mediaEl.currentTime = parseFloat(e.target.value);
-      setCurrentTime(mediaEl.currentTime);
+    const audio = audioRef.current;
+    if (audio) {
+      audio.currentTime = parseFloat(e.target.value);
+      setCurrentTime(audio.currentTime);
     }
   };
 
@@ -132,14 +67,6 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const handleLeft = () => {
-    setCurrentIndex(prev => (prev - 1 + sources.length) % sources.length);
-  };
-
-  const handleRight = () => {
-    setCurrentIndex(prev => (prev + 1) % sources.length);
-  };
-
   return (
     <div className={cn("border-2 border-primary/30 bg-card rounded-xl p-1.5 sm:p-3 flex flex-col min-h-[250px] relative", className)}>
       <audio ref={audioRef} src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="metadata" />
@@ -149,16 +76,10 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
           <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-white" />
         </div>
         <div className="flex-1 flex justify-center items-center gap-1">
-          <button 
-            className="w-4 h-4 sm:w-5 sm:h-5 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer"
-            onClick={handleLeft}
-          >
+          <button className="w-4 h-4 sm:w-5 sm:h-5 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
             <ChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground" />
           </button>
-          <button 
-            className="w-4 h-4 sm:w-5 sm:h-5 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer"
-            onClick={handleRight}
-          >
+          <button className="w-4 h-4 sm:w-5 sm:h-5 bg-background border border-border rounded-none flex items-center justify-center hover:bg-accent hover:border-accent transition-colors cursor-pointer">
             <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-foreground" />
           </button>
         </div>
@@ -169,41 +90,18 @@ export const MusicPlayer = ({ className }: MusicPlayerProps) => {
       </div>
       
       <div className="mb-2">
-        <p className="text-xs sm:text-sm font-medium mb-0.5 text-foreground leading-tight">{titles[currentIndex]}</p>
-        <p className="text-xs text-muted-foreground leading-tight">{subtitles[currentIndex]}</p>
+        <p className="text-xs sm:text-sm font-medium mb-0.5 text-foreground leading-tight">Rainy day relaxing sound</p>
+        <p className="text-xs text-muted-foreground leading-tight">Currently playing</p>
       </div>
 
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 w-full min-h-18 sm:min-h-30 rounded-lg mb-2 relative overflow-hidden">
-          <div 
-            className={cn(
-              "absolute inset-0 transition-transform duration-300 ease-in-out",
-              currentIndex === 0 ? 'translate-x-0' : '-translate-x-full'
-            )}
-          >
-            <div className="h-full w-full bg-gradient-to-br from-green-600 to-green-800 relative">
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-14 flex justify-center items-end gap-0.5 p-1.5">
-                {barHeights.map((height, i) => (
-                  <div key={i} className="bg-white/30 rounded w-0.5" style={{ height: `${height}%` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-          <div 
-            className={cn(
-              "absolute inset-0 transition-transform duration-300 ease-in-out",
-              currentIndex === 1 ? 'translate-x-0' : 'translate-x-full'
-            )}
-          >
-            <video 
-              ref={videoRef}
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-              className="w-full h-full object-cover"
-              loop 
-              preload="metadata" 
-            />
+        <div className="flex-1 w-full min-h-18 sm:min-h-30 bg-gradient-to-br from-green-600 to-green-800 rounded-lg mb-2 relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-14 flex justify-center items-end gap-0.5 p-1.5">
+            {[0,1,2,3,4,5].map(i => (
+              <div key={i} className="bg-white/30 rounded w-0.5" style={{height: `${Math.random()*80 + 20}%`}} />
+            ))}
           </div>
         </div>
         

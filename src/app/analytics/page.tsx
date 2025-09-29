@@ -60,54 +60,6 @@ const AnalyticsPage: React.FC = () => {
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day');
   const [error, setError] = useState<string | null>(null);
 
-  // New useEffect to load and apply appearance settings
-  useEffect(() => {
-    const loadAppearanceSettings = async () => {
-      try {
-        const response = await fetch('/api/appearance-settings');
-        if (response.ok) {
-          const settings = await response.json();
-          const root = document.documentElement;
-          root.style.setProperty('--background', 'white'); // Override to keep analytics white
-          root.style.setProperty('--primary', settings.primaryColor || '#3b82f6');
-          root.style.setProperty('--muted-foreground', settings.cardPlaceholderColor || '#9ca3af');
-          root.style.setProperty('--secondary-foreground', settings.cardPlaceholderColor || '#9ca3af');
-          root.style.setProperty('--sidebar', settings.navbarBackgroundColor || 'rgb(22, 143, 203)');
-          // Calculate primary-foreground based on luminance
-          const hexToRgb = (hex) => {
-            let resultHex = hex.replace(/^#/, '');
-            let r, g, b;
-            if (resultHex.length === 3) {
-              r = parseInt(resultHex[0] + resultHex[0], 16);
-              g = parseInt(resultHex[1] + resultHex[1], 16);
-              b = parseInt(resultHex[2] + resultHex[2], 16);
-            } else if (resultHex.length === 6) {
-              r = parseInt(resultHex.substring(0, 2), 16);
-              g = parseInt(resultHex.substring(2, 4), 16);
-              b = parseInt(resultHex.substring(4, 6), 16);
-            }
-            return { r, g, b };
-          };
-          const getLuminance = (hex) => {
-            const rgb = hexToRgb(hex);
-            const [r, g, b] = [rgb.r / 255, rgb.g / 255, rgb.b / 255].map(c => {
-              if (c <= 0.03928) return c / 12.92;
-              return Math.pow((c + 0.055) / 1.055, 2.4);
-            });
-            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-          };
-          const primaryColor = settings.primaryColor || '#3b82f6';
-          const luminance = getLuminance(primaryColor);
-          root.style.setProperty('--primary-foreground', luminance < 0.5 ? '#ffffff' : '#000000');
-        }
-      } catch (error) {
-        console.error('Failed to load appearance settings:', error);
-      }
-    };
-
-    loadAppearanceSettings();
-  }, []);
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -155,7 +107,7 @@ const AnalyticsPage: React.FC = () => {
             <Skeleton className="h-10 flex-1" />
           </TabsList>
           <TabsContent value="energy" className="mt-6 space-y-4">
-            <Card className="border-2 border-primary/30">
+            <Card>
               <CardHeader>
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
@@ -185,7 +137,7 @@ const AnalyticsPage: React.FC = () => {
             Back to Dashboard
           </Button>
         </div>
-        <Card className="border-2 border-primary/30">
+        <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 text-destructive">
               <AlertCircle className="h-5 w-5" />
@@ -235,7 +187,7 @@ const AnalyticsPage: React.FC = () => {
         </TabsList>
 
         <TabsContent value="energy" className="space-y-6">
-          <Card className="border-2 border-primary/30">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
@@ -249,19 +201,19 @@ const AnalyticsPage: React.FC = () => {
               {energyData?.deviceBreakdowns?.length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-3 gap-4">
-                    <Card className="border-2 border-primary/30">
+                    <Card>
                       <CardContent className="p-4">
                         <div className="text-3xl font-bold text-primary">{energyData.totalKwh.toFixed(2)} kWh</div>
                         <p className="text-sm text-muted-foreground mt-1">Total {period.charAt(0).toUpperCase() + period.slice(1)}</p>
                       </CardContent>
                     </Card>
-                    <Card className="border-2 border-primary/30">
+                    <Card>
                       <CardContent className="p-4">
                         <div className="text-3xl font-bold text-destructive">${energyData.totalCost.toFixed(2)}</div>
                         <p className="text-sm text-muted-foreground mt-1">Total Cost</p>
                       </CardContent>
                     </Card>
-                    <Card className="border-2 border-primary/30">
+                    <Card>
                       <CardContent className="p-4">
                         <div className="text-3xl font-bold text-secondary">{energyData.avgKwh.toFixed(2)} kWh</div>
                         <p className="text-sm text-muted-foreground mt-1">Average per Entry</p>
@@ -309,7 +261,7 @@ const AnalyticsPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-6">
-          <Card className="border-2 border-primary/30">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Activity className="h-5 w-5" />
@@ -359,7 +311,7 @@ const AnalyticsPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="performance" className="space-y-6">
-          <Card className="border-2 border-primary/30">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Gauge className="h-5 w-5" />
@@ -383,7 +335,7 @@ const AnalyticsPage: React.FC = () => {
                         key.includes('time') ? `${value.value}ms` : 
                         value.value;
                       return (
-                        <Card key={key} className="border-2 border-primary/30">
+                        <Card key={key}>
                           <CardContent className="p-4">
                             <div className="flex items-center gap-3 mb-2">
                               <div className="p-2 rounded-full bg-primary/10">
