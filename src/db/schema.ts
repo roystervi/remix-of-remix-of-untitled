@@ -97,3 +97,12 @@ export const gasStations = sqliteTable('gas_stations', {
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
+
+export const settings = sqliteTable('settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  mcpUrl: text('mcp_url'),
+  mcpToken: text('mcp_token'),
+  mcpConnected: integer('mcp_connected', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});

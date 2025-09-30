@@ -359,6 +359,14 @@ const SettingsPage = () => {
     preset: 'balanced'
   });
 
+  // Add MCP settings state
+  const [mcpUrl, setMcpUrl] = useState('http://homeassistant.local:8123');
+  const [mcpToken, setMcpToken] = useState('');
+  const [isMcpConnected, setIsMcpConnected] = useState(false);
+  const [isLoadingMcp, setIsLoadingMcp] = useState(false);
+  const [isSavingMcp, setIsSavingMcp] = useState(false);
+  const [exposedEntities, setExposedEntities] = useState([]);
+
   // Move the hooks inside the component
   const [appearanceSettings, setAppearanceSettings] = useState({
     mode: 'auto' as 'auto' | 'manual',
@@ -477,6 +485,81 @@ const SettingsPage = () => {
     }
   };
 
+  // Add loadMcpSettings function
+  const loadMcpSettings = async () => {
+    try {
+      const response = await fetch('/api/mcp-settings');
+      if (response.ok) {
+        const data = await response.json();
+        setMcpUrl(data.url || 'http://homeassistant.local:8123');
+        setMcpToken(data.token || '');
+        setIsMcpConnected(data.connected ?? false);
+        if (data.entities) {
+          setExposedEntities(data.entities);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load MCP settings:', error);
+    }
+  };
+
+  // Add testMcpConnection function
+  const testMcpConnection = async () => {
+    if (!mcpUrl || !mcpToken) {
+      toast.error('Enter Home Assistant URL and token');
+      return;
+    }
+
+    setIsLoadingMcp(true);
+    try {
+      const response = await fetch('/api/test-mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: mcpUrl, token: mcpToken })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsMcpConnected(true);
+        setExposedEntities(data.entities || []);
+        toast.success('MCP connection successful! Connected to Home Assistant.');
+      } else {
+        const errorData = await response.json();
+        setIsMcpConnected(false);
+        toast.error(errorData.error || 'Connection failed');
+      }
+    } catch (error) {
+      setIsMcpConnected(false);
+      toast.error('Test failed: ' + error.message);
+    } finally {
+      setIsLoadingMcp(false);
+    }
+  };
+
+  // Add saveMcpSettings function
+  const saveMcpSettings = async () => {
+    setIsSavingMcp(true);
+    try {
+      const response = await fetch('/api/mcp-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: mcpUrl, token: mcpToken })
+      });
+
+      if (response.ok) {
+        toast.success('MCP settings saved!');
+        setLastSaves(prev => ({ ...prev, mcp: new Date().toISOString() }));
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Save failed');
+      }
+    } catch (error) {
+      toast.error('Save failed: ' + error.message);
+    } finally {
+      setIsSavingMcp(false);
+    }
+  };
+
   // Sync responsive when appearanceSettings changes
   React.useEffect(() => {
     responsive.setMode(appearanceSettings.mode);
@@ -517,6 +600,11 @@ const SettingsPage = () => {
   // Add useEffect to load database settings
   React.useEffect(() => {
     loadDatabaseSettings();
+  }, []);
+
+  // Add useEffect to load MCP settings
+  React.useEffect(() => {
+    loadMcpSettings();
   }, []);
 
   const updateMode = (value: 'auto' | 'manual') => {
@@ -1027,13 +1115,14 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="appearance" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="weather">Weather</TabsTrigger>
           <TabsTrigger value="zipcode">Zip Code</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
+          <TabsTrigger value="mcp">AI Connections</TabsTrigger>
         </TabsList>
 
         <TabsContent value="appearance" className="space-y-4">
@@ -2255,6 +2344,112 @@ const SettingsPage = () => {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="mcp" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings2 className="h-5 w-5" />
+                AI Connections (MCP)
+              </CardTitle>
+              <CardDescription>
+                Configure Model Context Protocol integration for AI automation with Home Assistant.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h4 className="font-medium">Home Assistant MCP Server</h4>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="mcp-url">Home Assistant URL</Label>
+                    <Input
+                      id="mcp-url"
+                      type="url"
+                      placeholder="http://homeassistant.local:8123"
+                      value={mcpUrl}
+                      onChange={(e) => setMcpUrl(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="mcp-token">Long-Lived Access Token</Label>
+                    <Input
+                      id="mcp-token"
+                      type="password"
+                      placeholder="Your HA long-lived access token"
+                      value={mcpToken}
+                      onChange={(e) => setMcpToken(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    onClick={testMcpConnection}
+                    disabled={isLoadingMcp || !mcpUrl || !mcpToken}
+                    className="w-full"
+                  >
+                    {isLoadingMcp ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Testing Connection...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Test MCP Connection
+                      </>
+                    )}
+                  </Button>
+                  {isMcpConnected && (
+                    <Alert className="bg-green-50 border-green-200">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Connected Successfully!</p>
+                        <p className="text-sm text-green-700">
+                          Exposed Entities: {exposedEntities.length} available for AI control.
+                        </p>
+                        {exposedEntities.length > 0 && (
+                          <ul className="mt-1 text-xs text-green-600">
+                            {exposedEntities.slice(0, 5).map((entity, i) => (
+                              <li key={i}>{entity.entity_id}</li>
+                            ))}
+                            {exposedEntities.length > 5 && <li>...</li>}
+                          </ul>
+                        )}
+                      </div>
+                    </Alert>
+                  )}
+                  {!isMcpConnected && mcpUrl && mcpToken && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <p className="text-sm">Connection not established. Check URL and token.</p>
+                    </Alert>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p>Once connected, AI agents (like Claude Desktop) can query and control your Home Assistant entities via MCP.</p>
+                  <p className="mt-1">See <a href="https://www.home-assistant.io/integrations/mcp_server/" target="_blank" className="text-primary hover:underline">Home Assistant MCP Docs</a> for setup.</p>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-border">
+                <Button
+                  onClick={saveMcpSettings}
+                  disabled={isSavingMcp}
+                  className="w-full"
+                >
+                  {isSavingMcp ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save MCP Settings'
+                  )}
+                </Button>
+                <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
+                  <p><strong>MCP Last saved:</strong> {lastSaves.mcp ? formatDate(lastSaves.mcp) : 'Never'}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
