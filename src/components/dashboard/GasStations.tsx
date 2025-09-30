@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface GasStation {
   id: number;
@@ -16,6 +18,7 @@ interface GasStation {
 
 export function GasStations() {
   const [zip, setZip] = useState('');
+  const [fuelType, setFuelType] = useState('all');
   const [stations, setStations] = useState<GasStation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +31,11 @@ export function GasStations() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/gas-stations?zip=${zip}`);
+      const params = new URLSearchParams({ zip });
+      if (fuelType !== 'all') {
+        params.append('fuel', fuelType);
+      }
+      const response = await fetch(`/api/gas-stations?${params.toString()}`);
       const data = await response.json();
       if (data.error) {
         setError(data.error);
@@ -65,6 +72,20 @@ export function GasStations() {
             {loading ? <Skeleton className="h-4 w-4" /> : <Search className="h-4 w-4" />}
           </Button>
         </div>
+        <div>
+          <Label className="text-xs">Gas Grade</Label>
+          <Select value={fuelType} onValueChange={setFuelType}>
+            <SelectTrigger className="h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="regular">Regular</SelectItem>
+              <SelectItem value="premium">Premium</SelectItem>
+              <SelectItem value="diesel">Diesel</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
         {loading ? (
           <div className="space-y-2">
@@ -80,10 +101,10 @@ export function GasStations() {
                 <p className="text-xs">{station.address}</p>
               </div>
             ))}
-            <p className="text-xs text-muted-foreground">Showing {stations.length} stations near ZIP {zip}</p>
+            <p className="text-xs text-muted-foreground">Showing {stations.length} stations near ZIP {zip} ({fuelType === 'all' ? 'All Types' : fuelType.toUpperCase()})</p>
           </div>
         ) : zip && !loading ? (
-          <p className="text-sm text-muted-foreground">No stations found. Try another ZIP.</p>
+          <p className="text-sm text-muted-foreground">No stations found. Try another ZIP or gas type.</p>
         ) : (
           <p className="text-sm text-muted-foreground">Enter a ZIP code to search for nearby gas stations.</p>
         )}

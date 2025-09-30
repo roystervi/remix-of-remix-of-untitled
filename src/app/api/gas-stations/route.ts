@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const zip = searchParams.get('zip');
+  const fuel = searchParams.get('fuel');
 
   if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
     return NextResponse.json({ error: 'Invalid ZIP code (must be 5 digits)' }, { status: 400 });
@@ -20,10 +21,23 @@ export async function GET(request: NextRequest) {
     }
     const { latitude: lat, longitude: lon } = zipData;
 
-    // Step 2: Query Overpass API for gas stations within 10km
-    const overpassQuery = `[out:json][timeout:25];
+    // Step 2: Build Overpass query with optional fuel filter
+    let overpassQuery = `[out:json][timeout:25];
     (
-      node["amenity"="fuel"](around:10000,${lat},${lon});
+      node["amenity"="fuel"](around:10000,${lat},${lon})`;
+
+    if (fuel && fuel !== 'all') {
+      const fuelTags: { [key: string]: string } = {
+        regular: '"fuel:octane_87"="yes"',
+        premium: '"fuel:octane_91"="yes"',
+        diesel: '"fuel:diesel"="yes"'
+      };
+      if (fuelTags[fuel]) {
+        overpassQuery += `["${fuelTags[fuel].split('"')[1]}"]`;
+      }
+    }
+
+    overpassQuery += `;
     );
     out body;`;
 
@@ -46,14 +60,14 @@ export async function GET(request: NextRequest) {
         brand: el.tags?.brand || null,
         lat: el.lat,
         lon: el.lon,
-        address: el.tags?.addr?.street || el.tags?.addr?.city || 'No address',
+        address: el.tags?.['addr:street'] || el.tags?.['addr:city'] || 'No address',
       })) || [];
 
     if (stations.length === 0) {
-      return NextResponse.json({ stations: [], message: 'No gas stations found nearby' });
+      return NextResponse.json({ stations: [], message: `No ${fuel === 'all' ? 'gas stations' : fuel} stations found nearby` });
     }
 
-    return NextResponse.json({ stations, location: { lat, lon, zip } });
+    return NextResponse.json({ stations, location: { lat, lon, zip }, filter: fuel || 'all' });
   } catch (error) {
     console.error('Gas stations API error:', error);
     return NextResponse.json({ error: 'Failed to fetch gas stations', stations: [] }, { status: 500 });
