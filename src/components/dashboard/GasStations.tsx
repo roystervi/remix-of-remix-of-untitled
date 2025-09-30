@@ -51,6 +51,12 @@ export function GasStations() {
     setLoading(false);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <Card className="min-h-[300px]">
       <CardHeader className="pb-2 sm:pb-3">
@@ -65,6 +71,7 @@ export function GasStations() {
             placeholder="Enter ZIP code (e.g., 90210)"
             value={zip}
             onChange={(e) => setZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
+            onKeyDown={handleKeyDown}
             className="flex-1"
             maxLength={5}
           />
