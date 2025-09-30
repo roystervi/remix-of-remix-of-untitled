@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
   const fallbackStations: GasStation[] = [
     { 
       id: 1, 
+      zip: '32250',
       name: 'Circle K #2721210', 
       brand: 'Circle K', 
       address: '1031 Beach Blvd, Jacksonville Beach, FL 32250', 
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 2, 
+      zip: '32277',
       name: 'RaceTrac Merrill Rd', 
       brand: 'RaceTrac', 
       address: '8240 Merrill Rd, Jacksonville, FL 32277', 
@@ -63,6 +65,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 3, 
+      zip: '32211',
       name: 'Sunoco Arlington Expy', 
       brand: 'Sunoco', 
       address: '7961 Arlington Expy, Jacksonville, FL 32211', 
@@ -75,6 +78,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 4, 
+      zip: '32216',
       name: 'Sunoco Southside Blvd', 
       brand: 'Sunoco', 
       address: '4023 Southside Blvd, Jacksonville, FL 32216', 
@@ -87,6 +91,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 5, 
+      zip: '32257',
       name: 'Sunoco San Jose Blvd', 
       brand: 'Sunoco', 
       address: '10550 San Jose Blvd, Jacksonville, FL 32257', 
@@ -99,6 +104,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 6, 
+      zip: '32209',
       name: 'Sunoco Lane Ave', 
       brand: 'Sunoco', 
       address: '1879 S Lane Ave, Jacksonville, FL 32209', 
@@ -111,6 +117,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 7, 
+      zip: '32205',
       name: 'Sunoco Rayford St', 
       brand: 'Sunoco', 
       address: '2990 Rayford St, Jacksonville, FL 32205', 
@@ -123,6 +130,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 8, 
+      zip: '32205',
       name: 'Sunoco McDuff Ave', 
       brand: 'Sunoco', 
       address: '1060 McDuff Ave S, Jacksonville, FL 32205', 
@@ -135,6 +143,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 9, 
+      zip: '32244',
       name: 'RaceTrac Blanding North', 
       brand: 'RaceTrac', 
       address: '8108 Blanding Blvd, Jacksonville, FL 32244', 
@@ -147,6 +156,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 10, 
+      zip: '32210',
       name: 'RaceTrac Harlow', 
       brand: 'RaceTrac', 
       address: '6913 103rd St, Jacksonville, FL 32210', 
@@ -159,6 +169,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 11, 
+      zip: '32207',
       name: 'RaceTrac Atlantic', 
       brand: 'RaceTrac', 
       address: '4544 Atlantic Blvd, Jacksonville, FL 32207', 
@@ -171,6 +182,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 12, 
+      zip: '32219',
       name: 'RaceTrac New Kings', 
       brand: 'RaceTrac', 
       address: '9980 New Kings Hwy, Jacksonville, FL 32219', 
@@ -184,6 +196,7 @@ export async function GET(request: NextRequest) {
     // Add more from web search
     { 
       id: 13, 
+      zip: '32246',
       name: 'RaceTrac Deerwood', 
       brand: 'RaceTrac', 
       address: '5004 Gate Pkwy, Jacksonville, FL 32246', 
@@ -196,6 +209,7 @@ export async function GET(request: NextRequest) {
     },
     { 
       id: 14, 
+      zip: '32256',
       name: 'RaceTrac Baymeadows', 
       brand: 'RaceTrac', 
       address: '8715 Baymeadows Rd, Jacksonville, FL 32256', 
@@ -208,11 +222,13 @@ export async function GET(request: NextRequest) {
     }
   ];
 
-  let stations = fallbackStations.map(station => ({
-    ...station,
-    // Calculate distance for each station from ZIP center
-    distance: Math.round(calculateDistance(lat, lon, station.lat, station.lon) * 0.621371 * 10) / 10 // miles, 1 decimal
-  }));
+  let stations = fallbackStations
+    .filter(station => station.zip === zip)  // Strict ZIP filter
+    .map(station => ({
+      ...station,
+      // Calculate distance for each station from ZIP center
+      distance: Math.round(calculateDistance(lat, lon, station.lat, station.lon) * 0.621371 * 10) / 10 // miles, 1 decimal
+    }));
 
   // Filter by fuel type if specified (all stations have types, so show all if 'all')
   if (fuel !== 'all') {
@@ -223,6 +239,14 @@ export async function GET(request: NextRequest) {
 
   // Sort by distance ascending (closest first)
   stations.sort((a, b) => a.distance - b.distance);
+
+  if (stations.length === 0) {
+    return NextResponse.json({ 
+      stations: [], 
+      location: { zip, lat, lon },
+      message: `No gas stations found exactly in ZIP ${zip}. Try a nearby ZIP or check the database.`
+    });
+  }
 
   return NextResponse.json({ 
     stations, 
