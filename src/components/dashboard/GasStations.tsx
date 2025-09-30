@@ -32,89 +32,62 @@ export function GasStations({ className }: { className?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [currentLocation, setCurrentLocation] = useState({ zip: '32277' });
 
-  useEffect(() => {
-    const fetchStations = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams({
-          zip: zip,
-          radius: radius.toString(),
-          fuel: selectedFuel
-        });
-        const response = await fetch(`/api/gas-stations?${params}`);
-        if (!response.ok) throw new Error('Failed to fetch');
-        const { stations, location, error: apiError } = await response.json();
-        
-        if (apiError) {
-          toast.warning(apiError);
-        }
-        
-        setStations(stations || []);
-        setCurrentLocation(location);
-        
-        // Update ZIP input if geocoded
-        if (location.zip !== zip) setZip(location.zip);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load gas stations');
-        toast.error('No stations found - check ZIP and try again');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (zip.trim()) {
-      fetchStations();
-    }
-  }, [zip, selectedFuel, radius]);
-
-  const handleSearch = async () => {
+  const fetchStations = async () => {
     if (!zip || zip.length !== 5) {
       setError('Please enter a valid 5-digit ZIP code');
+      setStations([]);
+      setLoading(false);
       return;
     }
+
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ zip });
-      if (selectedFuel !== 'all') {
-        params.append('fuel', selectedFuel);
-      }
-      const response = await fetch(`/api/gas-stations?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      const params = new URLSearchParams({
+        zip: zip,
+        radius: radius.toString(),
+        fuel: selectedFuel
+      });
+      const response = await fetch(`/api/gas-stations?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const { stations: fetchedStations, location, error: apiError } = await response.json();
       
-      // Safe handling for data
-      let stationsData = [];
-      if (data) {
-        if (data.error) {
-          setError(data.error);
-          setStations([]);
-          return;
-        }
-        stationsData = Array.isArray(data) ? data : (data.stations || []);
+      if (apiError) {
+        toast.warning(apiError);
+        setStations([]);
+        return;
       }
       
-      // Ensure it's an array
-      stationsData = Array.isArray(stationsData) ? stationsData : [];
-      setStations(stationsData);
-      setError(null);
+      setStations(fetchedStations || []);
+      setCurrentLocation(location || currentLocation);
+      
+      // Update ZIP input if geocoded
+      if (location && location.zip && location.zip !== zip) setZip(location.zip);
     } catch (err) {
-      console.error('Search error:', err);
-      setError('Search failed. Please try again.');
+      console.error(err);
+      setError('Failed to load gas stations');
+      toast.error('No stations found - check ZIP and try again');
       setStations([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleKeyDown = (e) => {
+  const handleSearch = () => {
+    fetchStations();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
+
+  useEffect(() => {
+    if (zip.trim() && zip.length === 5) {
+      fetchStations();
+    }
+  }, [zip, selectedFuel, radius]);
 
   return (
     <Card className={cn("min-h-[300px]", className)}>
@@ -131,10 +104,10 @@ export function GasStations({ className }: { className?: string }) {
               placeholder="Enter ZIP (default: 32277)"
               value={zip}
               onChange={(e) => setZip(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchStations()} // Trigger on Enter
+              onKeyDown={handleKeyDown}
               className="flex-1"
             />
-            <Button onClick={() => fetchStations()}>Search</Button>
+            <Button onClick={handleSearch}>Search</Button>
           </div>
           <div className="flex items-center gap-2">
             <Label>Radius: {radius} miles</Label>
