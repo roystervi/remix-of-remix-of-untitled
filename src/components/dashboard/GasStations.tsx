@@ -24,94 +24,52 @@ interface GasStation {
 }
 
 export function GasStations({ className, defaultFuelType = 'all', initialZip = '32277' }: { className?: string; defaultFuelType?: string; initialZip?: string }) {
-  const [zip, setZip] = useState(initialZip); // Use provided initial ZIP or default
-  const [radius, setRadius] = useState(10); // Default to 10 miles as per user request
+  const [zip, setZip] = useState(initialZip);
   const [selectedFuel, setSelectedFuel] = useState(defaultFuelType);
   const [stations, setStations] = useState<GasStation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentLocation, setCurrentLocation] = useState({ zip: '32277' });
 
   useEffect(() => {
     const fetchStations = async () => {
+      if (!zip.trim()) return;
+      
       setLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams({
           zip: zip,
-          radius: radius.toString(),
           fuel: selectedFuel
         });
         const response = await fetch(`/api/gas-stations?${params}`);
         if (!response.ok) throw new Error('Failed to fetch');
-        const { stations, location, error: apiError } = await response.json();
-        
-        if (apiError) {
-          toast.warning(apiError);
-        }
+        const { stations, location, message } = await response.json();
         
         setStations(stations || []);
-        setCurrentLocation(location);
-        
-        // Update ZIP input if geocoded
-        if (location.zip !== zip) setZip(location.zip);
+        if (message) toast.info(message);
       } catch (err) {
         console.error(err);
-        setError('Failed to load gas stations');
-        toast.error('No stations found - check ZIP and try again');
+        setError('Failed to load gas stations for ZIP ' + zip);
+        toast.error('No stations found - try another ZIP');
+        setStations([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (zip.trim()) {
-      fetchStations();
-    }
-  }, [zip, selectedFuel, radius]);
+    fetchStations();
+  }, [zip, selectedFuel]);
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (!zip || zip.length !== 5) {
-      setError('Please enter a valid 5-digit ZIP code');
+      setError('Enter a valid 5-digit ZIP code');
+      toast.error('Invalid ZIP');
       return;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams({
-        zip,
-        radius: radius.toString(),
-        fuel: selectedFuel === 'all' ? 'all' : selectedFuel
-      });
-      const response = await fetch(`/api/gas-stations?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      
-      // Safe handling for data
-      let stationsData = [];
-      if (data) {
-        if (data.error) {
-          setError(data.error);
-          setStations([]);
-          return;
-        }
-        stationsData = Array.isArray(data) ? data : (data.stations || []);
-      }
-      
-      // Ensure it's an array
-      stationsData = Array.isArray(stationsData) ? stationsData : [];
-      setStations(stationsData);
-      setError(null);
-    } catch (err) {
-      console.error('Search error:', err);
-      setError('Search failed. Please try again.');
-      setStations([]);
-    }
-    setLoading(false);
+    // Triggers useEffect
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
@@ -122,97 +80,92 @@ export function GasStations({ className, defaultFuelType = 'all', initialZip = '
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
-          Nearby Gas Stations
+          Gas Stations in ZIP {zip || 'Enter ZIP'}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-2 sm:p-4 space-y-3">
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex gap-2">
             <Input
-              placeholder="Enter ZIP (default: 32277)"
+              placeholder="Enter 5-digit ZIP (e.g., 32277)"
               value={zip}
               onChange={(e) => setZip(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1"
+              className="flex-1 min-w-0"
             />
-            <Button onClick={handleSearch}>
+            <Button onClick={handleSearch} disabled={!zip || zip.length !== 5 || loading}>
               <Search className="h-4 w-4 mr-1" />
               Search
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Label>Radius: {radius} miles</Label>
-            <Input
-              type="range"
-              min={5}
-              max={50}
-              step={5}
-              value={radius}
-              onChange={(e) => setRadius(parseInt(e.target.value))}
-              className="w-32"
-            />
+          
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Fuel Type (Filters results)</Label>
+            <Select value={selectedFuel} onValueChange={setSelectedFuel} disabled={loading}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Fuel Types</SelectItem>
+                <SelectItem value="regular">Regular</SelectItem>
+                <SelectItem value="premium">Premium</SelectItem>
+                <SelectItem value="diesel">Diesel</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <div>
-          <Label className="text-xs">Gas Grade</Label>
-          <Select value={selectedFuel} onValueChange={setSelectedFuel}>
-            <SelectTrigger className="h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="regular">Regular</SelectItem>
-              <SelectItem value="premium">Premium</SelectItem>
-              <SelectItem value="diesel">Diesel</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mb-3">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+
         {loading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
+          <div className="space-y-3">
+            <Skeleton className="h-12 rounded-lg" />
+            <Skeleton className="h-12 rounded-lg" />
+            <Skeleton className="h-12 rounded-lg w-3/4" />
           </div>
-        ) : (stations || []).length > 0 ? (
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {(stations || []).map((station, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-card rounded-lg border">
-                <div className="flex-1">
-                  <h3 className="font-semibold">{station.name}</h3>
-                  <p className="text-sm text-muted-foreground">{station.address}</p>
-                  <p className="text-xs">{station.fuelType} • {station.distance.toFixed(1)} miles away</p>
+        ) : stations.length > 0 ? (
+          <div className="space-y-3 max-h-60 overflow-y-auto">
+            {stations.map((station) => (
+              <div key={station.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-muted rounded-md border">
+                <div className="flex-1 mb-2 sm:mb-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-sm">{station.name}</span>
+                    {station.brand && <span className="text-xs bg-primary px-2 py-0.5 rounded-full text-primary-foreground">{station.brand}</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-1">{station.address}</p>
+                  <p className="text-xs flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {station.distance.toFixed(1)} miles • {station.fuelType}
+                  </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-green-600">${station.price}</div>
-                  {station.price === 'N/A' && (
-                    <span className="text-xs text-muted-foreground">Price unavailable</span>
-                  )}
-                  <div className="flex items-center gap-1 text-xs">
-                    <Star className="h-3 w-3 fill-yellow-400" />
-                    {station.rating}
+                <div className="text-right flex-shrink-0">
+                  <div className="text-xl font-bold text-green-600">${station.price}</div>
+                  {station.price === 'N/A' && <span className="text-xs text-muted-foreground block">Price N/A</span>}
+                  <div className="flex items-center gap-1 text-xs text-yellow-600 mt-1">
+                    <Star className="h-3 w-3 fill-current" />
+                    {station.rating.toFixed(1)}
                   </div>
                 </div>
               </div>
             ))}
-            <p className="text-xs text-muted-foreground">Showing {(stations || []).length} stations near ZIP {zip} ({selectedFuel === 'all' ? 'All Types' : selectedFuel.toUpperCase()})</p>
+            <p className="text-xs text-muted-foreground text-center pt-2 border-t">
+              Showing all {stations.length} stations in ZIP {zip} • Sorted by distance
+            </p>
           </div>
-        ) : zip && !loading ? (
-          <p className="text-sm text-muted-foreground">No stations found. Try another ZIP or gas type.</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">Enter a ZIP code to search for nearby gas stations.</p>
-        )}
-        {!loading && stations.length === 0 && zip && (
+        ) : zip && zip.length === 5 && !loading ? (
           <Alert variant="default">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No stations found in {radius} miles of {zip}. Try a broader radius or different ZIP.
+            <AlertDescription className="text-sm">
+              No gas stations found exactly in ZIP {zip}. Showing nearby stations automatically.
             </AlertDescription>
           </Alert>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-8">Enter a ZIP code to view all gas stations in that area.</p>
         )}
       </CardContent>
     </Card>
