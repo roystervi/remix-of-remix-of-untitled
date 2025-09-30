@@ -644,6 +644,7 @@ const SettingsPage = () => {
               country: settings.country || '',
               zip: settings.zip || '32225'
             });
+            setDefaultFuelType(settings.defaultFuelType || 'all');
           }
         }
       } catch (error) {
@@ -698,7 +699,7 @@ const SettingsPage = () => {
     }
   };
 
-  const handleSaveWeatherSettings = async () => {
+  const handleSaveWeatherSettingsWithFuel = async () => {
     if (!weatherLocation.lat || !weatherLocation.lon) {
       toast.error("Set a valid location (via coordinates, ZIP, or detection) before saving");
       return;
@@ -717,7 +718,8 @@ const SettingsPage = () => {
           units: weatherUnits,
           city: weatherLocation.city,
           country: weatherLocation.country,
-          zip: weatherLocation.zip
+          zip: weatherLocation.zip,
+          defaultFuelType: defaultFuelType
         })
       });
 
@@ -1003,6 +1005,9 @@ const SettingsPage = () => {
       setIsLoadingSchema(false);
     }
   };
+
+  // Add state for fuel type
+  const [defaultFuelType, setDefaultFuelType] = useState('all');
 
   return (
     <div className="p-6 bg-background text-foreground min-h-screen">
@@ -1503,7 +1508,7 @@ const SettingsPage = () => {
                     )}
 
                     <Button
-                      onClick={handleSaveWeatherSettings}
+                      onClick={handleSaveWeatherSettingsWithFuel}
                       disabled={isSavingSettings || !weatherLocation.lat || !weatherLocation.lon}
                       className="w-full"
                     >
@@ -1645,6 +1650,41 @@ const SettingsPage = () => {
                   </Button>
                 </div>
               </div>
+              <div className="space-y-4 mt-4 pt-4 border-t border-border">
+                <h4 className="font-medium">Gas Station Preferences</h4>
+                <div className="space-y-2">
+                  <Label>Default Fuel Type</Label>
+                  <Select value={defaultFuelType} onValueChange={setDefaultFuelType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="regular">Regular</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Choose your preferred gas type for searches in the dashboard.</p>
+                </div>
+                <Button
+                  onClick={handleSaveWeatherSettingsWithFuel}
+                  disabled={isSavingSettings || !weatherLocation.lat || !weatherLocation.lon}
+                  className="w-full"
+                >
+                  {isSavingSettings ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Save Location & Gas Preferences
+                    </>
+                  )}
+                </Button>
+              </div>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -1670,7 +1710,7 @@ const SettingsPage = () => {
                 Detect My Location
               </Button>
               <Button
-                onClick={handleSaveWeatherSettings}
+                onClick={handleSaveWeatherSettingsWithFuel}
                 disabled={isSavingSettings || !weatherLocation.lat || !weatherLocation.lon}
                 className="w-full"
               >
@@ -1693,7 +1733,7 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          <GasStations className="min-h-[300px]" />
+          <GasStations className="min-h-[300px]" defaultFuelType={defaultFuelType} />
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">
