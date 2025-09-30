@@ -25,7 +25,7 @@ interface GasStation {
 
 export function GasStations({ className, defaultFuelType = 'all' }: { className?: string; defaultFuelType?: string }) {
   const [zip, setZip] = useState('32277'); // Default to user's specified ZIP
-  const [radius, setRadius] = useState(50); // Default 50 miles
+  const [radius, setRadius] = useState(10); // Default to 10 miles as per user request
   const [selectedFuel, setSelectedFuel] = useState(defaultFuelType);
   const [stations, setStations] = useState<GasStation[]>([]);
   const [loading, setLoading] = useState(false);
@@ -77,10 +77,11 @@ export function GasStations({ className, defaultFuelType = 'all' }: { className?
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ zip });
-      if (selectedFuel !== 'all') {
-        params.append('fuel', selectedFuel);
-      }
+      const params = new URLSearchParams({
+        zip,
+        radius: radius.toString(),
+        fuel: selectedFuel === 'all' ? 'all' : selectedFuel
+      });
       const response = await fetch(`/api/gas-stations?${params.toString()}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -143,8 +144,9 @@ export function GasStations({ className, defaultFuelType = 'all' }: { className?
             <Label>Radius: {radius} miles</Label>
             <Input
               type="range"
-              min={10}
-              max={100}
+              min={5}
+              max={50}
+              step={5}
               value={radius}
               onChange={(e) => setRadius(parseInt(e.target.value))}
               className="w-32"

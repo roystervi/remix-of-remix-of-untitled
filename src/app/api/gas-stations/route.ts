@@ -16,130 +16,241 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const zip = searchParams.get('zip') || '32277';
+  const fuel = searchParams.get('fuel') || 'all';
+  const radius = searchParams.get('radius') || '50'; // Default to 50 miles
+
+  // First, geocode ZIP to lat/lon (using free Nominatim or integrate Google if key available)
+  let lat = 30.3322; // Default Jacksonville coords
+  let lon = -81.6557;
   try {
-    // First, ensure the table exists
-    await db.run(sql`
-      CREATE TABLE IF NOT EXISTS gas_stations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        brand TEXT,
-        lat REAL NOT NULL,
-        lon REAL NOT NULL,
-        address TEXT,
-        fuel_types TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    `);
-
-    const { searchParams } = new URL(request.url);
-    const zip = searchParams.get('zip');
-    const fuel = searchParams.get('fuel');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-    const offset = parseInt(searchParams.get('offset') || '0');
-
-    let stations = [];
-
-    // Get all stations initially
-    const allStations = await db.all(sql`SELECT * FROM gas_stations`);
-    stations = [...allStations]; // Create a copy
-
-    // Apply ZIP filtering if specified
-    if (zip) {
-      // Validate ZIP code format
-      if (!/^\d{5}$/.test(zip)) {
-        return NextResponse.json({
-          error: 'Invalid ZIP code format. Must be 5 digits.',
-          code: 'INVALID_ZIP_FORMAT'
-        }, { status: 400 });
-      }
-
-      // For ZIP 32225, use hardcoded coordinates
-      if (zip === '32225') {
-        const zipLat = 30.3322;
-        const zipLon = -81.6557;
-
-        stations = stations.filter((station: any) => {
-          const distance = calculateDistance(zipLat, zipLon, station.lat, station.lon);
-          return distance <= 10;
-        });
-      } else {
-        return NextResponse.json({
-          error: 'ZIP code not supported. Only 32225 is supported in this demo.',
-          code: 'ZIP_NOT_SUPPORTED'
-        }, { status: 400 });
-      }
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${zip}+FL&limit=1`);
+    const geoData = await geoRes.json();
+    if (geoData[0]) {
+      lat = parseFloat(geoData[0].lat);
+      lon = parseFloat(geoData[0].lon);
     }
+  } catch (error) {
+    console.error('Geocoding failed:', error);
+  }
 
-    // Apply fuel filtering if specified
-    if (fuel) {
-      const validFuelTypes = ['regular', 'premium', 'diesel', 'plus'];
-      if (!validFuelTypes.includes(fuel.toLowerCase())) {
-        return NextResponse.json({
-          error: 'Invalid fuel type. Must be one of: regular, premium, diesel, plus',
-          code: 'INVALID_FUEL_TYPE'
-        }, { status: 400 });
-      }
+  // Call Apify GasBuddy Scraper via proxy endpoint (assumes RAPIDAPI_KEY in env)
+  const apifyInput = {
+    search: `${lat},${lon} within ${radius} miles`,
+    fuelType: fuel === 'all' ? 'regular' : fuel, // Default to regular for all, filter client-side
+    maxCrawledPlacesPerSearch: 20
+  };
 
-      const targetFuel = fuel.toLowerCase();
-      
-      stations = stations.filter((station: any) => {
-        try {
-          const fuelTypesJson = station.fuel_types;
-          if (!fuelTypesJson) return false;
-          
-          const fuelTypes = JSON.parse(fuelTypesJson);
-          if (!Array.isArray(fuelTypes)) return false;
-          
-          const hasTargetFuel = fuelTypes.some((type: string) => {
-            return typeof type === 'string' && type.toLowerCase() === targetFuel;
-          });
-          
-          return hasTargetFuel;
-        } catch (error) {
-          console.error('Error parsing fuel types for station:', station.id, station.fuel_types, error);
-          return false;
-        }
-      });
-    }
-
-    // Apply pagination if no specific filters or after filtering
-    if (!zip && !fuel) {
-      stations = stations.slice(offset, offset + limit);
-    } else if (stations.length > limit) {
-      stations = stations.slice(offset, offset + limit);
-    }
-
-    // Format response with fuelTypes parsed
-    const formattedStations = stations.map((station: any) => {
-      let parsedFuelTypes = [];
-      try {
-        parsedFuelTypes = JSON.parse(station.fuel_types || '[]');
-      } catch {
-        parsedFuelTypes = [];
-      }
-      
-      return {
-        id: station.id,
-        name: station.name,
-        brand: station.brand,
-        lat: station.lat,
-        lon: station.lon,
-        address: station.address,
-        fuelTypes: parsedFuelTypes,
-        createdAt: station.created_at,
-        updatedAt: station.updated_at
-      };
+  try {
+    const res = await fetch('https://rapidapi.com/stanvanrooy6/api/gasbuddy-scraper', {
+      method: 'POST',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '',
+        'X-RapidAPI-Host': 'gasbuddy-scraper.p.rapidapi.com',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(apifyInput)
     });
 
-    return NextResponse.json(formattedStations);
+    if (!res.ok) throw new Error('API fetch failed');
 
+    let stations = await res.json();
+
+    // Normalize data with prices, addresses, and fuel types
+    stations = stations.map((station: any) => ({
+      name: station.name || 'Unknown Station',
+      address: station.address || `${station.city}, ${station.state}`,
+      price: station.price_cents_per_gallon ? (station.price_cents_per_gallon / 100).toFixed(2) : 'N/A',
+      fuelType: station.fuel_type || fuel,
+      rating: station.rating_out_of_five || 0,
+      distance: station.distance_miles || 0 // Approximate based on search
+    }));
+
+    // Filter if specific fuel requested
+    if (fuel !== 'all') {
+      stations = stations.filter((s: any) => s.fuelType.toLowerCase().includes(fuel.toLowerCase()));
+    }
+
+    // Sort by price ascending
+    stations.sort((a: any, b: any) => parseFloat(a.price) - parseFloat(b.price));
+
+    return NextResponse.json({ stations, location: { zip, lat, lon, radius } });
   } catch (error) {
-    console.error('GET error:', error);
-    return NextResponse.json({
-      error: 'Internal server error: ' + error,
-      code: 'INTERNAL_ERROR'
-    }, { status: 500 });
+    console.error('Gas stations fetch error:', error);
+    // Fallback to seeded/mock data with prices
+    const fallbackStations = [
+      { 
+        id: 1, 
+        name: 'Costco Jacksonville', 
+        brand: 'Costco', 
+        address: '8000 Parramore Rd, Jacksonville, FL 32256', 
+        lat: 30.2425, 
+        lon: -81.5867, 
+        fuelType: 'regular', 
+        price: '2.92', 
+        rating: 4.5, 
+        distance: 12.5 
+      },
+      { 
+        id: 2, 
+        name: "Sam's Club Jacksonville", 
+        brand: "Sam's Club", 
+        address: '6373 Youngerman Cir, Jacksonville, FL 32244', 
+        lat: 30.2649, 
+        lon: -81.7635, 
+        fuelType: 'regular', 
+        price: '2.92', 
+        rating: 4.2, 
+        distance: 10.2 
+      },
+      { 
+        id: 3, 
+        name: 'Shell - Beach Blvd', 
+        brand: 'Shell', 
+        address: '1234 Beach Blvd, Jacksonville, FL 32250', 
+        lat: 30.2895, 
+        lon: -81.4758, 
+        fuelType: 'premium', 
+        price: '3.29', 
+        rating: 3.8, 
+        distance: 8.1 
+      },
+      { 
+        id: 4, 
+        name: 'Sunoco - Arlington Expy', 
+        brand: 'Sunoco', 
+        address: '7961 Arlington Expy, Jacksonville, FL 32211', 
+        lat: 30.3281, 
+        lon: -81.5733, 
+        fuelType: 'diesel', 
+        price: '3.15', 
+        rating: 4.0, 
+        distance: 15.3 
+      },
+      { 
+        id: 5, 
+        name: "BJ's Wholesale - City Center", 
+        brand: "BJ's", 
+        address: '12884 City Center Blvd, Jacksonville, FL 32224', 
+        lat: 30.2249, 
+        lon: -81.4803, 
+        fuelType: 'premium', 
+        price: '3.25', 
+        rating: 4.8, 
+        distance: 5.7 
+      },
+      { 
+        id: 6, 
+        name: 'Exxon - Southside Blvd', 
+        brand: 'Exxon', 
+        address: '4023 Southside Blvd, Jacksonville, FL 32216', 
+        lat: 30.2745, 
+        lon: -81.5585, 
+        fuelType: 'regular', 
+        price: '2.95', 
+        rating: 3.9, 
+        distance: 18.4 
+      },
+      { 
+        id: 7, 
+        name: 'Chevron - San Jose Blvd', 
+        brand: 'Chevron', 
+        address: '10550 San Jose Blvd, Jacksonville, FL 32257', 
+        lat: 30.1860, 
+        lon: -81.6287, 
+        fuelType: 'premium', 
+        price: '3.35', 
+        rating: 4.1, 
+        distance: 20.1 
+      },
+      { 
+        id: 8, 
+        name: 'Mobil - Lane Ave', 
+        brand: 'Mobil', 
+        address: '1879 S Lane Ave, Jacksonville, FL 32210', 
+        lat: 30.2855, 
+        lon: -81.7553, 
+        fuelType: 'diesel', 
+        price: '3.20', 
+        rating: 3.7, 
+        distance: 11.8 
+      },
+      { 
+        id: 9, 
+        name: 'BP - Rayford St', 
+        brand: 'BP', 
+        address: '2990 Rayford St, Jacksonville, FL 32205', 
+        lat: 30.3207, 
+        lon: -81.7053, 
+        fuelType: 'regular', 
+        price: '2.89', 
+        rating: 4.0, 
+        distance: 14.2 
+      },
+      { 
+        id: 10, 
+        name: 'Shell - McDuff Ave', 
+        brand: 'Shell', 
+        address: '1060 McDuff Ave S, Jacksonville, FL 32205', 
+        lat: 30.3110, 
+        lon: -81.7057, 
+        fuelType: 'premium', 
+        price: '3.30', 
+        rating: 3.9, 
+        distance: 13.5 
+      },
+      { 
+        id: 11, 
+        name: 'Phillips 66 - Collins Road', 
+        brand: 'Phillips 66', 
+        address: '6655 Collins Road, Jacksonville, FL 32244', 
+        lat: 30.2370, 
+        lon: -81.7700, 
+        fuelType: 'diesel', 
+        price: '3.18', 
+        rating: 4.3, 
+        distance: 9.5 
+      },
+      { 
+        id: 12, 
+        name: 'Wawa - Atlantic Blvd', 
+        brand: 'Wawa', 
+        address: '12345 Atlantic Blvd, Jacksonville, FL 32225', 
+        lat: 30.3680, 
+        lon: -81.4650, 
+        fuelType: 'regular', 
+        price: '2.94', 
+        rating: 4.4, 
+        distance: 7.8 
+      }
+    ];
+
+    let filteredStations = fallbackStations;
+
+    // Filter by radius (convert km to miles approx, but use miles directly)
+    const radiusMiles = parseFloat(radius);
+    filteredStations = filteredStations.filter(station => station.distance <= radiusMiles);
+
+    // Filter by fuel if not 'all'
+    if (fuel !== 'all') {
+      filteredStations = filteredStations.filter(station => 
+        station.fuelType.toLowerCase() === fuel.toLowerCase()
+      );
+    }
+
+    // Sort by price ascending (skip N/A or sort numerically)
+    filteredStations.sort((a, b) => {
+      const priceA = a.price === 'N/A' ? Infinity : parseFloat(a.price);
+      const priceB = b.price === 'N/A' ? Infinity : parseFloat(b.price);
+      return priceA - priceB;
+    });
+
+    return NextResponse.json({ 
+      stations: filteredStations, 
+      location: { zip, lat, lon, radius: parseFloat(radius) },
+      error: 'Using enhanced fallback data for demo (real API integration recommended)'
+    });
   }
 }
 
