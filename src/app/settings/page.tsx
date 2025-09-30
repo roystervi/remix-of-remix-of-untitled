@@ -1733,7 +1733,7 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          <GasStations className="min-h-[300px]" defaultFuelType={defaultFuelType} />
+          <GasStations className="min-h-[300px]" defaultFuelType={defaultFuelType} initialZip={weatherLocation.zip || '32277'} />
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">

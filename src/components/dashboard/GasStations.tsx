@@ -23,8 +23,8 @@ interface GasStation {
   distance: number;
 }
 
-export function GasStations({ className, defaultFuelType = 'all' }: { className?: string; defaultFuelType?: string }) {
-  const [zip, setZip] = useState('32277'); // Default to user's specified ZIP
+export function GasStations({ className, defaultFuelType = 'all', initialZip = '32277' }: { className?: string; defaultFuelType?: string; initialZip?: string }) {
+  const [zip, setZip] = useState(initialZip); // Use provided initial ZIP or default
   const [radius, setRadius] = useState(10); // Default to 10 miles as per user request
   const [selectedFuel, setSelectedFuel] = useState(defaultFuelType);
   const [stations, setStations] = useState<GasStation[]>([]);
