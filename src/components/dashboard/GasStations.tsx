@@ -1,0 +1,93 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, MapPin } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface GasStation {
+  id: number;
+  name: string;
+  brand?: string;
+  lat: number;
+  lon: number;
+  address: string;
+}
+
+export function GasStations() {
+  const [zip, setZip] = useState('');
+  const [stations, setStations] = useState<GasStation[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSearch = async () => {
+    if (!zip || zip.length !== 5) {
+      setError('Please enter a valid 5-digit ZIP code');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/gas-stations?zip=${zip}`);
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+        setStations([]);
+      } else {
+        setStations(data.stations);
+        setError(null);
+      }
+    } catch (err) {
+      setError('Search failed. Please try again.');
+      setStations([]);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <Card className="min-h-[300px]">
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+          <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+          Nearby Gas Stations
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-2 sm:p-4 space-y-3">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Enter ZIP code (e.g., 90210)"
+            value={zip}
+            onChange={(e) => setZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
+            className="flex-1"
+            maxLength={5}
+          />
+          <Button onClick={handleSearch} size="sm" disabled={loading || !zip}>
+            {loading ? <Skeleton className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+          </Button>
+        </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        {loading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        ) : stations.length > 0 ? (
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {stations.map((station) => (
+              <div key={station.id} className="p-2 border rounded-md bg-muted/50">
+                <p className="font-medium text-sm">{station.name}</p>
+                {station.brand && <p className="text-xs text-muted-foreground">{station.brand}</p>}
+                <p className="text-xs">{station.address}</p>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">Showing {stations.length} stations near ZIP {zip}</p>
+          </div>
+        ) : zip && !loading ? (
+          <p className="text-sm text-muted-foreground">No stations found. Try another ZIP.</p>
+        ) : (
+          <p className="text-sm text-muted-foreground">Enter a ZIP code to search for nearby gas stations.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

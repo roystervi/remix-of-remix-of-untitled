@@ -4,6 +4,7 @@ import { WiFiRouterStats } from './WiFiRouterStats';
 import { LEDStripsLight } from './LEDStripsLight';
 import { ThermostatControl } from './ThermostatControl';
 import { ElectricityChart } from './ElectricityChart';
+import { GasStations } from './GasStations';
 
 export const RightColumn = () => (
   <div className="col-span-1 lg:col-span-8 h-full flex flex-col gap-4">
@@ -16,5 +17,8 @@ export const RightColumn = () => (
     </div>
     
     <ElectricityChart className="min-h-[200px] sm:min-h-[250px]" />
+    
+    {/* Gas Stations Search */}
+    <GasStations className="min-h-[300px]" />
   </div>
 );
