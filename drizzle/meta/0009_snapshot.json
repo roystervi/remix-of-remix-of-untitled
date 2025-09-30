@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "04e3a872-6a33-48eb-9daf-29437509d038",
-  "prevId": "dbeb59d9-726c-4843-84a9-a866d8106dfe",
+  "id": "96207a2a-37fa-4d74-bebe-c21f6ae97bb9",
+  "prevId": "04e3a872-6a33-48eb-9daf-29437509d038",
   "tables": {
     "appearance_settings": {
       "name": "appearance_settings",
@@ -457,7 +457,7 @@
           "name": "address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "fuel_types": {

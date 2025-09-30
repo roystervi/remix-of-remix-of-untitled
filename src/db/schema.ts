@@ -85,3 +85,15 @@ export const systemPerformance = sqliteTable('system_performance', {
   value: real('value').notNull(),
   timestamp: text('timestamp').notNull(),
 });
+
+export const gasStations = sqliteTable('gas_stations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  brand: text('brand'),
+  lat: real('lat').notNull(),
+  lon: real('lon').notNull(),
+  address: text('address').notNull(),
+  fuelTypes: text('fuel_types', { mode: 'json' }).notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});

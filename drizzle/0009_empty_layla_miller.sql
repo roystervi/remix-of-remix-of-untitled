@@ -1,0 +1,1 @@
+ALTER TABLE `gas_stations` ALTER COLUMN "address" TO "address" text NOT NULL;
