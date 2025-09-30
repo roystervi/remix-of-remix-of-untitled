@@ -13,15 +13,17 @@ import {
   ArrowLeft,
   Database,  // Added
   Download,  // Added
-  Upload     // Added
+  Upload,    // Added
+  MapPin
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Cloud, MapPin } from 'lucide-react';
+import { Cloud } from 'lucide-react';
 import { toast } from 'sonner'; // Assuming sonner is available as per project
 import { X } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { GasStations } from '@/components/dashboard/GasStations'; // Added import
 
 // Utility function
 const cn = (...classes) => classes.filter(Boolean).join(' ');
@@ -1690,6 +1692,8 @@ const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+
+          <GasStations className="min-h-[300px]" />
         </TabsContent>
 
         <TabsContent value="database" className="space-y-4">
