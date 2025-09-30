@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ interface GasStation {
   address: string;
 }
 
-export function GasStations() {
+export function GasStations({ className }: { className?: string }) {
   const [zip, setZip] = useState('');
   const [fuelType, setFuelType] = useState('all');
   const [stations, setStations] = useState<GasStation[]>([]);
@@ -36,15 +37,28 @@ export function GasStations() {
         params.append('fuel', fuelType);
       }
       const response = await fetch(`/api/gas-stations?${params.toString()}`);
-      const data = await response.json();
-      if (data.error) {
-        setError(data.error);
-        setStations([]);
-      } else {
-        setStations(data.stations);
-        setError(null);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      
+      // Safe handling for data
+      let stationsData = [];
+      if (data) {
+        if (data.error) {
+          setError(data.error);
+          setStations([]);
+          return;
+        }
+        stationsData = Array.isArray(data) ? data : (data.stations || []);
+      }
+      
+      // Ensure it's an array
+      stationsData = Array.isArray(stationsData) ? stationsData : [];
+      setStations(stationsData);
+      setError(null);
     } catch (err) {
+      console.error('Search error:', err);
       setError('Search failed. Please try again.');
       setStations([]);
     }
@@ -58,7 +72,7 @@ export function GasStations() {
   };
 
   return (
-    <Card className="min-h-[300px]">
+    <Card className={cn("min-h-[300px]", className)}>
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
           <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -99,16 +113,16 @@ export function GasStations() {
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
           </div>
-        ) : stations.length > 0 ? (
+        ) : (stations || []).length > 0 ? (
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {stations.map((station) => (
+            {(stations || []).map((station) => (
               <div key={station.id} className="p-2 border rounded-md bg-muted/50">
                 <p className="font-medium text-sm">{station.name}</p>
                 {station.brand && <p className="text-xs text-muted-foreground">{station.brand}</p>}
-                <p className="text-xs">{station.address}</p>
+                <p className="text-xs">{station.address || 'No address available'}</p>
               </div>
             ))}
-            <p className="text-xs text-muted-foreground">Showing {stations.length} stations near ZIP {zip} ({fuelType === 'all' ? 'All Types' : fuelType.toUpperCase()})</p>
+            <p className="text-xs text-muted-foreground">Showing {(stations || []).length} stations near ZIP {zip} ({fuelType === 'all' ? 'All Types' : fuelType.toUpperCase()})</p>
           </div>
         ) : zip && !loading ? (
           <p className="text-sm text-muted-foreground">No stations found. Try another ZIP or gas type.</p>
