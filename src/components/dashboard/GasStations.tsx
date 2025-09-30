@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Star, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface GasStation {
   id: number;
@@ -15,14 +17,57 @@ interface GasStation {
   lat: number;
   lon: number;
   address: string;
+  fuelType: string;
+  price: string;
+  rating: number;
+  distance: number;
 }
 
 export function GasStations({ className }: { className?: string }) {
-  const [zip, setZip] = useState('');
-  const [fuelType, setFuelType] = useState('all');
+  const [zip, setZip] = useState('32277'); // Default to user's specified ZIP
+  const [radius, setRadius] = useState(50); // Default 50 miles
+  const [selectedFuel, setSelectedFuel] = useState('all');
   const [stations, setStations] = useState<GasStation[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentLocation, setCurrentLocation] = useState({ zip: '32277' });
+
+  useEffect(() => {
+    const fetchStations = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          zip: zip,
+          radius: radius.toString(),
+          fuel: selectedFuel
+        });
+        const response = await fetch(`/api/gas-stations?${params}`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const { stations, location, error: apiError } = await response.json();
+        
+        if (apiError) {
+          toast.warning(apiError);
+        }
+        
+        setStations(stations || []);
+        setCurrentLocation(location);
+        
+        // Update ZIP input if geocoded
+        if (location.zip !== zip) setZip(location.zip);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load gas stations');
+        toast.error('No stations found - check ZIP and try again');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (zip.trim()) {
+      fetchStations();
+    }
+  }, [zip, selectedFuel, radius]);
 
   const handleSearch = async () => {
     if (!zip || zip.length !== 5) {
@@ -33,8 +78,8 @@ export function GasStations({ className }: { className?: string }) {
     setError(null);
     try {
       const params = new URLSearchParams({ zip });
-      if (fuelType !== 'all') {
-        params.append('fuel', fuelType);
+      if (selectedFuel !== 'all') {
+        params.append('fuel', selectedFuel);
       }
       const response = await fetch(`/api/gas-stations?${params.toString()}`);
       if (!response.ok) {
@@ -80,22 +125,32 @@ export function GasStations({ className }: { className?: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-2 sm:p-4 space-y-3">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Enter ZIP code (e.g., 90210)"
-            value={zip}
-            onChange={(e) => setZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-            onKeyDown={handleKeyDown}
-            className="flex-1"
-            maxLength={5}
-          />
-          <Button onClick={handleSearch} size="sm" disabled={loading || !zip}>
-            {loading ? <Skeleton className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-          </Button>
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter ZIP (default: 32277)"
+              value={zip}
+              onChange={(e) => setZip(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchStations()} // Trigger on Enter
+              className="flex-1"
+            />
+            <Button onClick={() => fetchStations()}>Search</Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label>Radius: {radius} miles</Label>
+            <Input
+              type="range"
+              min={10}
+              max={100}
+              value={radius}
+              onChange={(e) => setRadius(parseInt(e.target.value))}
+              className="w-32"
+            />
+          </div>
         </div>
         <div>
           <Label className="text-xs">Gas Grade</Label>
-          <Select value={fuelType} onValueChange={setFuelType}>
+          <Select value={selectedFuel} onValueChange={setSelectedFuel}>
             <SelectTrigger className="h-8">
               <SelectValue />
             </SelectTrigger>
@@ -115,19 +170,38 @@ export function GasStations({ className }: { className?: string }) {
           </div>
         ) : (stations || []).length > 0 ? (
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {(stations || []).map((station) => (
-              <div key={station.id} className="p-2 border rounded-md bg-muted/50">
-                <p className="font-medium text-sm">{station.name}</p>
-                {station.brand && <p className="text-xs text-muted-foreground">{station.brand}</p>}
-                <p className="text-xs">{station.address || 'No address available'}</p>
+            {stations.map((station, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-card rounded-lg border">
+                <div className="flex-1">
+                  <h3 className="font-semibold">{station.name}</h3>
+                  <p className="text-sm text-muted-foreground">{station.address}</p>
+                  <p className="text-xs">{station.fuelType} • {station.distance.toFixed(1)} miles away</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-600">${station.price}</div>
+                  {station.price === 'N/A' ? (
+                    <span className="text-xs text-muted-foreground">Price unavailable</span>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs">
+                      <Star className="h-3 w-3 fill-yellow-400" />
+                      {station.rating}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
-            <p className="text-xs text-muted-foreground">Showing {(stations || []).length} stations near ZIP {zip} ({fuelType === 'all' ? 'All Types' : fuelType.toUpperCase()})</p>
+            <p className="text-xs text-muted-foreground">Showing {(stations || []).length} stations near ZIP {zip} ({selectedFuel === 'all' ? 'All Types' : selectedFuel.toUpperCase()})</p>
           </div>
         ) : zip && !loading ? (
           <p className="text-sm text-muted-foreground">No stations found. Try another ZIP or gas type.</p>
         ) : (
           <p className="text-sm text-muted-foreground">Enter a ZIP code to search for nearby gas stations.</p>
+        )}
+        {!loading && stations.length === 0 && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <p>No stations found in {radius} miles of {zip}. Try a broader radius or different ZIP.</p>
+          </Alert>
         )}
       </CardContent>
     </Card>
