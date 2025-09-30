@@ -1,23 +1,23 @@
 import { db } from '@/db';
-import { settings } from '@/db/schema';
+import { mcpConfig } from '@/db/schema';
 
 async function main() {
     const currentTimestamp = new Date().toISOString();
     
-    const settingsData = [
+    const sampleMcpConfig = [
         {
-            mcpUrl: null,
-            mcpToken: null,
-            mcpConnected: false,
+            url: null,
+            token: null,
+            connected: false,
             entities: '[]',
             createdAt: currentTimestamp,
             updatedAt: currentTimestamp,
         }
     ];
 
-    await db.insert(settings).values(settingsData);
+    await db.insert(mcpConfig).values(sampleMcpConfig);
     
-    console.log('✅ Settings seeder completed successfully');
+    console.log('✅ MCP config seeder completed successfully');
 }
 
 main().catch((error) => {

@@ -103,6 +103,27 @@ export const settings = sqliteTable('settings', {
   mcpUrl: text('mcp_url'),
   mcpToken: text('mcp_token'),
   mcpConnected: integer('mcp_connected', { mode: 'boolean' }).default(false),
+  entities: text('entities', { mode: 'json' }).default('[]'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const mcpSettings = sqliteTable('mcp_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  url: text('url'),
+  token: text('token'),
+  connected: integer('connected', { mode: 'boolean' }).default(false),
+  entities: text('entities', { mode: 'json' }).default('[]'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const mcpConfig = sqliteTable('mcp_config', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  url: text('url'),
+  token: text('token'),
+  connected: integer('connected', { mode: 'boolean' }).default(false),
+  entities: text('entities', { mode: 'json' }).default('[]'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });

@@ -1,0 +1,1 @@
+ALTER TABLE `mcp_settings` ADD `entities` text DEFAULT '[]';

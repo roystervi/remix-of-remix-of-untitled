@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { settings } from '@/db/schema';
+import { mcpConfig } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
     const settingsRecord = await db.select()
-      .from(settings)
+      .from(mcpConfig)
       .limit(1);
 
     if (settingsRecord.length === 0) {
       return NextResponse.json(null);
     }
 
-    return NextResponse.json(settingsRecord[0]);
+    // Transform the response to include entities as parsed JSON
+    const result = {
+      ...settingsRecord[0],
+      entities: settingsRecord[0].entities ? JSON.parse(settingsRecord[0].entities) : []
+    };
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('GET error:', error);
     return NextResponse.json({ 
@@ -26,82 +32,107 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { mcpUrl, mcpToken, mcpConnected } = body;
+    const { url, token, connected, entities } = body;
 
     // Input validation
-    if (mcpUrl !== undefined && mcpUrl !== null && mcpUrl !== '') {
-      if (typeof mcpUrl !== 'string') {
+    if (url !== undefined && url !== null && url !== '') {
+      if (typeof url !== 'string') {
         return NextResponse.json({ 
-          error: "mcpUrl must be a string",
-          code: "INVALID_MCP_URL_TYPE" 
+          error: "url must be a string",
+          code: "INVALID_URL_TYPE" 
         }, { status: 400 });
       }
 
-      const trimmedUrl = mcpUrl.trim();
+      const trimmedUrl = url.trim();
       if (trimmedUrl && !trimmedUrl.match(/^https?:\/\/.+/)) {
         return NextResponse.json({ 
-          error: "mcpUrl must be a valid URL starting with http or https",
-          code: "INVALID_MCP_URL_FORMAT" 
+          error: "url must be a valid URL starting with http or https",
+          code: "INVALID_URL_FORMAT" 
         }, { status: 400 });
       }
     }
 
-    if (mcpToken !== undefined && mcpToken !== null && typeof mcpToken !== 'string') {
+    if (token !== undefined && token !== null && typeof token !== 'string') {
       return NextResponse.json({ 
-        error: "mcpToken must be a string",
-        code: "INVALID_MCP_TOKEN_TYPE" 
+        error: "token must be a string",
+        code: "INVALID_TOKEN_TYPE" 
       }, { status: 400 });
     }
 
-    if (mcpConnected !== undefined && typeof mcpConnected !== 'boolean') {
+    if (connected !== undefined && typeof connected !== 'boolean') {
       return NextResponse.json({ 
-        error: "mcpConnected must be a boolean",
-        code: "INVALID_MCP_CONNECTED_TYPE" 
+        error: "connected must be a boolean",
+        code: "INVALID_CONNECTED_TYPE" 
       }, { status: 400 });
+    }
+
+    if (entities !== undefined && entities !== null) {
+      if (!Array.isArray(entities)) {
+        return NextResponse.json({ 
+          error: "entities must be an array",
+          code: "INVALID_ENTITIES_TYPE" 
+        }, { status: 400 });
+      }
     }
 
     // Check if settings record exists
     const existingSettings = await db.select()
-      .from(settings)
+      .from(mcpConfig)
       .limit(1);
 
     const currentTimestamp = new Date().toISOString();
 
     if (existingSettings.length === 0) {
       // Create new settings record
-      const newSettings = await db.insert(settings)
+      const newSettings = await db.insert(mcpConfig)
         .values({
-          mcpUrl: mcpUrl ? mcpUrl.trim() : null,
-          mcpToken: mcpToken || null,
-          mcpConnected: mcpConnected !== undefined ? mcpConnected : false,
+          url: url ? url.trim() : null,
+          token: token || null,
+          connected: connected !== undefined ? connected : false,
+          entities: entities ? JSON.stringify(entities) : '[]',
           createdAt: currentTimestamp,
           updatedAt: currentTimestamp
         })
         .returning();
 
-      return NextResponse.json(newSettings[0], { status: 201 });
+      // Transform response
+      const result = {
+        ...newSettings[0],
+        entities: newSettings[0].entities ? JSON.parse(newSettings[0].entities) : []
+      };
+
+      return NextResponse.json(result, { status: 201 });
     } else {
       // Update existing settings record with partial updates
       const updateData: any = {
         updatedAt: currentTimestamp
       };
 
-      if (mcpUrl !== undefined) {
-        updateData.mcpUrl = mcpUrl ? mcpUrl.trim() : null;
+      if (url !== undefined) {
+        updateData.url = url ? url.trim() : null;
       }
-      if (mcpToken !== undefined) {
-        updateData.mcpToken = mcpToken || null;
+      if (token !== undefined) {
+        updateData.token = token || null;
       }
-      if (mcpConnected !== undefined) {
-        updateData.mcpConnected = mcpConnected;
+      if (connected !== undefined) {
+        updateData.connected = connected;
+      }
+      if (entities !== undefined) {
+        updateData.entities = entities ? JSON.stringify(entities) : '[]';
       }
 
-      const updatedSettings = await db.update(settings)
+      const updatedSettings = await db.update(mcpConfig)
         .set(updateData)
-        .where(eq(settings.id, existingSettings[0].id))
+        .where(eq(mcpConfig.id, existingSettings[0].id))
         .returning();
 
-      return NextResponse.json(updatedSettings[0]);
+      // Transform response
+      const result = {
+        ...updatedSettings[0],
+        entities: updatedSettings[0].entities ? JSON.parse(updatedSettings[0].entities) : []
+      };
+
+      return NextResponse.json(result);
     }
   } catch (error) {
     console.error('POST error:', error);

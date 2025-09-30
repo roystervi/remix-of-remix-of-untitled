@@ -523,6 +523,12 @@ const SettingsPage = () => {
         setIsMcpConnected(true);
         setExposedEntities(data.entities || []);
         toast.success('MCP connection successful! Connected to Home Assistant.');
+        
+        // Auto-save connected status and entities after successful test
+        await saveMcpSettings(true);
+        
+        // Reload to ensure consistency
+        await loadMcpSettings();
       } else {
         const errorData = await response.json();
         setIsMcpConnected(false);
@@ -537,13 +543,19 @@ const SettingsPage = () => {
   };
 
   // Add saveMcpSettings function
-  const saveMcpSettings = async () => {
+  const saveMcpSettings = async (fullSave = false) => {
     setIsSavingMcp(true);
     try {
+      const bodyData = {
+        url: mcpUrl,
+        token: mcpToken,
+        ...(fullSave && { connected: isMcpConnected, entities: exposedEntities })
+      };
+      
       const response = await fetch('/api/mcp-settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: mcpUrl, token: mcpToken })
+        body: JSON.stringify(bodyData)
       });
 
       if (response.ok) {
@@ -2432,20 +2444,42 @@ const SettingsPage = () => {
                 </div>
               </div>
               <div className="pt-4 border-t border-border">
-                <Button
-                  onClick={saveMcpSettings}
-                  disabled={isSavingMcp}
-                  className="w-full"
-                >
-                  {isSavingMcp ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save MCP Settings'
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => saveMcpSettings(true)}
+                    disabled={isSavingMcp || !mcpUrl || !mcpToken}
+                    className="flex-1"
+                  >
+                    {isSavingMcp ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Save MCP Settings
+                      </>
+                    )}
+                  </Button>
+                  {isMcpConnected && (
+                    <Button
+                      variant="outline"
+                      onClick={testMcpConnection}
+                      disabled={isLoadingMcp}
+                      className="flex-1"
+                    >
+                      {isLoadingMcp ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Re-test
+                        </>
+                      ) : (
+                        'Re-test Connection'
+                      )}
+                    </Button>
                   )}
-                </Button>
+                </div>
                 <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
                   <p><strong>MCP Last saved:</strong> {lastSaves.mcp ? formatDate(lastSaves.mcp) : 'Never'}</p>
                 </div>
