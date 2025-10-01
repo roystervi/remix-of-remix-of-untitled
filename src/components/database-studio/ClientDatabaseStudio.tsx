@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Database, Search, Table } from 'lucide-react';
+import { Database, Search, Table, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +65,15 @@ export default function ClientDatabaseStudio() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+        <Button
+          variant="ghost"
+          onClick={() => router.push('/dashboard')}
+          className="mr-4 h-10 px-3"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">Database Studio</h1>
           <p className="text-muted-foreground">Manage and explore your database tables</p>
         </div>
