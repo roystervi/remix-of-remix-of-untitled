@@ -24,6 +24,8 @@ import { X } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { GasStations } from '@/components/dashboard/GasStations'; // Added import
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTable } from '@/components/ui/data-table'; // Assume shadcn DataTable if available, or use Table
 
 // Utility function
 const cn = (...classes) => classes.filter(Boolean).join(' ');
@@ -496,6 +498,13 @@ const SettingsPage = () => {
         setIsMcpConnected(data.connected ?? false);
         if (data.entities) {
           setExposedEntities(data.entities);
+        }
+        // Load advanced features
+        if (data.server_port) setServerPort(data.server_port);
+        if (data.exposure_rules) setExposureRules(JSON.stringify(data.exposure_rules, null, 2));
+        await loadMcpStatus();
+        if (isMcpConnected) {
+          await fetchDiscoveredEntities();
         }
       }
     } catch (error) {
@@ -1108,6 +1117,172 @@ const SettingsPage = () => {
 
   // Add state for fuel type
   const [defaultFuelType, setDefaultFuelType] = useState('all');
+
+  // Add these new states after existing MCP states
+  const [discoveredEntities, setDiscoveredEntities] = useState<EntityResponse[]>([]);
+  const [mcpStatus, setMcpStatus] = useState({
+    connected: false,
+    exposed_count: 0,
+    last_sync_time: null,
+    server_port: 8124,
+    rules_list: [],
+    entities_total: 0
+  });
+  const [isLoadingEntities, setIsLoadingEntities] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [serverPort, setServerPort] = useState(8124);
+  const [exposureRules, setExposureRules] = useState('[]');
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+
+  // Add these new functions after existing MCP functions
+
+  // Load MCP status
+  const loadMcpStatus = async () => {
+    try {
+      setIsLoadingEntities(true);
+      const response = await fetch('/api/mcp/status');
+      if (response.ok) {
+        const status = await response.json();
+        setMcpStatus(status);
+        setServerPort(status.server_port);
+        setExposureRules(JSON.stringify(status.rules_list, null, 2));
+      }
+    } catch (error) {
+      console.error('Failed to load MCP status:', error);
+      toast.error('Failed to load status');
+    } finally {
+      setIsLoadingEntities(false);
+    }
+  };
+
+  // Fetch discovered entities
+  const fetchDiscoveredEntities = async () => {
+    try {
+      setIsLoadingEntities(true);
+      const response = await fetch('/api/mcp/entities');
+      if (response.ok) {
+        const data = await response.json();
+        setDiscoveredEntities(data.entities || []);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to fetch entities');
+      }
+    } catch (error) {
+      console.error('Failed to fetch entities:', error);
+      toast.error('Network error');
+    } finally {
+      setIsLoadingEntities(false);
+    }
+  };
+
+  // Toggle entity exposure
+  const toggleEntityExposure = async (entityId: string, isExposed: boolean) => {
+    try {
+      const response = await fetch('/api/mcp/expose', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entity_id: entityId, is_exposed: isExposed })
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setDiscoveredEntities(prev => 
+          prev.map(ent => ent.entity_id === entityId ? { ...ent, is_exposed: isExposed } : ent)
+        );
+        toast.success(`Entity ${isExposed ? 'exposed' : 'hidden'}`);
+      } else {
+        toast.error('Failed to update exposure');
+      }
+    } catch (error) {
+      toast.error('Network error updating exposure');
+    }
+  };
+
+  // Handle entity sync
+  const handleSyncEntities = async () => {
+    setIsSyncing(true);
+    try {
+      const response = await fetch('/api/mcp/sync', { method: 'POST' });
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(`Synced ${data.synced_count} entities`);
+        await fetchDiscoveredEntities(); // Refresh list
+        await loadMcpStatus(); // Refresh status
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Sync failed');
+      }
+    } catch (error) {
+      toast.error('Network error during sync');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Save server config
+  const saveServerConfig = async () => {
+    setIsSavingConfig(true);
+    try {
+      const response = await fetch('/api/mcp-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          server_port: serverPort,
+          exposure_rules: exposureRules
+        })
+      });
+      if (response.ok) {
+        toast.success('Server config saved');
+        await loadMcpStatus(); // Refresh after save
+      } else {
+        toast.error('Failed to save config');
+      }
+    } catch (error) {
+      toast.error('Network error saving config');
+    } finally {
+      setIsSavingConfig(false);
+    }
+  };
+
+  // Update loadMcpSettings to also load advanced features
+  const loadMcpSettings = async () => {
+    try {
+      const response = await fetch('/api/mcp-settings');
+      if (response.ok) {
+        const data = await response.json();
+        setMcpUrl(data.url || 'http://homeassistant.local:8123');
+        setMcpToken(data.token || '');
+        setIsMcpConnected(data.connected ?? false);
+        if (data.entities) {
+          setExposedEntities(data.entities);
+        }
+        // Load advanced features
+        if (data.server_port) setServerPort(data.server_port);
+        if (data.exposure_rules) setExposureRules(JSON.stringify(data.exposure_rules, null, 2));
+        await loadMcpStatus();
+        if (isMcpConnected) {
+          await fetchDiscoveredEntities();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load MCP settings:', error);
+    }
+  };
+
+  // Update useEffect for MCP tab
+  React.useEffect(() => {
+    if (activeTab === 'mcp') {
+      loadMcpSettings();
+    }
+  }, [activeTab]);
+
+  // Define EntityResponse type (add after existing interfaces)
+  interface EntityResponse {
+    entity_id: string;
+    state: string;
+    friendly_name: string;
+    domain: string;
+    is_exposed: boolean;
+  }
 
   return (
     <div className="p-6 bg-background text-foreground min-h-screen">
@@ -2443,6 +2618,163 @@ const SettingsPage = () => {
                   <p className="mt-1">See <a href="https://www.home-assistant.io/integrations/mcp_server/" target="_blank" className="text-primary hover:underline">Home Assistant MCP Docs</a> for setup.</p>
                 </div>
               </div>
+
+              {/* New Advanced Features Section */}
+              {isMcpConnected && (
+                <div className="space-y-6">
+                  {/* Real-time Status Badges */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium">MCP Status</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-xs font-medium">Connection</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Badge variant={mcpStatus?.connected ? 'default' : 'secondary'}>
+                            {mcpStatus?.connected ? 'Connected' : 'Disconnected'}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-xs font-medium">Exposed Entities</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Badge variant="outline">
+                            {mcpStatus?.exposed_count || 0}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-xs font-medium">Last Sync</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-xs text-muted-foreground">
+                            {mcpStatus?.last_sync_time ? new Date(mcpStatus.last_sync_time).toLocaleString() : 'Never'}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    <Button onClick={loadMcpStatus} variant="outline" className="w-full">
+                      Refresh Status
+                    </Button>
+                  </div>
+
+                  {/* Entity Discovery and Exposure */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Discovered Entities ({mcpStatus?.entities_total || 0})</h4>
+                      <Button onClick={handleSyncEntities} disabled={isSyncing}>
+                        {isSyncing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Syncing...
+                          </>
+                        ) : (
+                          'Sync Entities'
+                        )}
+                      </Button>
+                    </div>
+                    {isLoadingEntities ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                        Loading entities...
+                      </div>
+                    ) : (
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[50px]"></TableHead>
+                              <TableHead>Entity ID</TableHead>
+                              <TableHead>Friendly Name</TableHead>
+                              <TableHead>Domain</TableHead>
+                              <TableHead>Current State</TableHead>
+                              <TableHead>Exposed</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {discoveredEntities.map((entity) => (
+                              <TableRow key={entity.entity_id}>
+                                <TableCell>
+                                  <Checkbox
+                                    checked={entity.is_exposed}
+                                    onCheckedChange={(checked) => toggleEntityExposure(entity.entity_id, checked as boolean)}
+                                  />
+                                </TableCell>
+                                <TableCell className="font-medium">{entity.entity_id}</TableCell>
+                                <TableCell>{entity.friendly_name}</TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary">{entity.domain}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={entity.state === 'on' ? 'default' : 'secondary'}>
+                                    {entity.state}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={entity.is_exposed ? 'default' : 'outline'}>
+                                    {entity.is_exposed ? 'Yes' : 'No'}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                    {discoveredEntities.length === 0 && !isLoadingEntities && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No entities discovered. Click "Sync Entities" to fetch from Home Assistant.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Server Configuration */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium">MCP Server Configuration</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="server-port">Exposure Port</Label>
+                        <Input
+                          id="server-port"
+                          type="number"
+                          min="1024"
+                          max="65535"
+                          value={serverPort || 8124}
+                          onChange={(e) => setServerPort(parseInt(e.target.value) || 8124)}
+                          placeholder="8124"
+                        />
+                        <p className="text-xs text-muted-foreground">Port for MCP server exposure (default: 8124)</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="exposure-rules">Exposure Rules (JSON)</Label>
+                        <Textarea
+                          id="exposure-rules"
+                          value={exposureRules || '[]'}
+                          onChange={(e) => setExposureRules(e.target.value)}
+                          placeholder='[{"pattern": "light.*", "allowed": true}, {"pattern": ".*bedroom.*", "allowed": false}]'
+                          className="min-h-[100px] font-mono text-xs"
+                        />
+                        <p className="text-xs text-muted-foreground">JSON rules for entity exposure (pattern, allowed, readonly, etc.)</p>
+                      </div>
+                    </div>
+                    <Button onClick={saveServerConfig} disabled={isSavingConfig} className="w-full">
+                      {isSavingConfig ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving Config...
+                        </>
+                      ) : (
+                        'Save Server Config'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="pt-4 border-t border-border">
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button

@@ -124,6 +124,18 @@ export const mcpConfig = sqliteTable('mcp_config', {
   token: text('token'),
   connected: integer('connected', { mode: 'boolean' }).default(false),
   entities: text('entities', { mode: 'json' }).default('[]'),
+  serverPort: integer('server_port').default(8124),
+  exposureRules: text('exposure_rules', { mode: 'json' }).default('[]'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const mcpExposedEntities = sqliteTable('mcp_exposed_entities', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  configId: integer('config_id').references(() => mcpConfig.id, { onDelete: 'cascade' }).notNull(),
+  entityId: text('entity_id').notNull(),
+  isExposed: integer('is_exposed', { mode: 'boolean' }).default(true),
+  lastSync: text('last_sync'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
