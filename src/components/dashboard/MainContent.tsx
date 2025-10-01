@@ -9,6 +9,7 @@ import { RightColumn } from './RightColumn';
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useDashboardData } from '@/hooks/useDashboardData';
+import { JavisAssistant } from './JavisAssistant';
 
 interface MainContentProps {
   setSidebarOpen: (open: boolean) => void;
@@ -98,6 +99,8 @@ export const MainContent: React.FC<MainContentProps> = ({ setSidebarOpen }) => {
         <LeftColumn />
         <RightColumn />
       </div>
+
+      <JavisAssistant />
     </div>
   );
 };
