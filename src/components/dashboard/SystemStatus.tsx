@@ -1,62 +1,35 @@
-import { Wifi, Server, Smartphone, Router } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+"use client";
+
 import { Badge } from '@/components/ui/badge';
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { mockSystemStatus } from '@/data/mockDashboardData';
+import { Wifi, Clock, Database } from 'lucide-react';
 
-export function SystemStatus() {
-  const { systemStatus } = useDashboardData();
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'online': return 'bg-green-500';
-      case 'warning': return 'bg-yellow-500';
-      case 'offline': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getStatusIcon = (type: string) => {
-    switch (type) {
-      case 'wifi': return Wifi;
-      case 'hub': return Server;
-      case 'devices': return Smartphone;
-      case 'network': return Router;
-      default: return Server;
-    }
-  };
-
+export const SystemStatus = () => {
   return (
-    <Card className="min-h-[150px]">
-      <CardHeader className="pb-2 sm:pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-          <Server className="h-4 w-4 sm:h-5 sm:w-5" />
-          System Status
-        </CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>System Status</CardTitle>
       </CardHeader>
-      <CardContent className="p-2 sm:p-4 space-y-2 sm:space-y-4">
-        {systemStatus.map((item) => {
-          const Icon = getStatusIcon(item.type);
-          return (
-            <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 min-w-0">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-1">
-                <div className="p-1 sm:p-2 rounded-md bg-accent w-full sm:w-auto">
-                  <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="font-medium text-sm leading-tight truncate">{item.name}</div>
-                  <div className="text-xs text-muted-foreground leading-tight">{item.details}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto">
-                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${getStatusColor(item.status)}`} />
-                <Badge variant="outline" className="text-xs capitalize">
-                  {item.status}
-                </Badge>
-              </div>
-            </div>
-          );
-        })}
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-3">
+          <Wifi className={`h-4 w-4 ${mockSystemStatus.connected ? 'text-green-500' : 'text-red-500'}`} />
+          <Badge variant={mockSystemStatus.connected ? 'default' : 'destructive'}>
+            {mockSystemStatus.connected ? 'Connected' : 'Disconnected'}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-3">
+          <Database className="h-4 w-4" />
+          <span>Exposed: {mockSystemStatus.exposedCount}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Clock className="h-4 w-4" />
+          <span>Last Sync: {new Date(mockSystemStatus.lastSync).toLocaleString()}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>Load: {(mockSystemStatus.load * 100).toFixed(0)}%</span>
+        </div>
       </CardContent>
     </Card>
   );
-}
+};

@@ -1,17 +1,34 @@
-export const generateAudioLevels = () => Array.from({ length: 40 }, () => Math.random() * 60 + 20);
+export const formatTime = (isoString: string): string => {
+  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
 
-// Utility for Sidebar class calculation
-export const getSidebarClass = (screenSize, sidebarOpen, cn) => {
-  if (screenSize === 'desktop') {
-    return cn(
-      sidebarOpen ? 'relative w-72 flex-shrink-0' : 'relative w-0 flex-shrink-0 overflow-hidden',
-      'bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out'
-    );
-  } else {
-    return cn(
-      'fixed inset-y-0 left-0 z-50 w-72',
-      sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-      'transition-transform duration-300 ease-in-out bg-card border-r border-border flex flex-col'
-    );
+export const getDeviceState = (domain: string, state: string): { icon: string; color: string } => {
+  const icons = {
+    light: state === 'on' ? { icon: '💡', color: 'text-yellow-400' } : { icon: '💡', color: 'text-gray-400' },
+    switch: state === 'on' ? { icon: '🔌', color: 'text-green-400' } : { icon: '🔌', color: 'text-gray-400' },
+  };
+  return icons[domain as keyof typeof icons] || { icon: '⚪', color: 'text-gray-400' };
+};
+
+export const calculateEnergyUsage = (rawData: number[]): { labels: string[]; data: number[] } => {
+  const now = new Date();
+  const labels = [];
+  const processed = [];
+  for (let i = 5; i >= 0; i--) {
+    const hour = new Date(now.getTime() - i * 60 * 60 * 1000).getHours();
+    labels.unshift(`${hour}:00`);
+    processed.unshift(rawData[i] || 0);
   }
+  return { labels, data: processed };
+};
+
+export const generateAudioLevels = (): number[] => {
+  return Array.from({ length: 5 }, () => Math.random() * 100);
+};
+
+export const getSidebarClass = (isActive: boolean, screenSize: string): string => {
+  return cn(
+    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+    isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+  );
 };

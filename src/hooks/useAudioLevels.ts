@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { generateAudioLevels } from '@/lib/dashboard-utils';
 
@@ -7,7 +9,7 @@ export const useAudioLevels = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setAudioLevels(generateAudioLevels());
-    }, 150);
+    }, 500);
     return () => clearInterval(interval);
   }, []);
 
