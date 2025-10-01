@@ -2,7 +2,8 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockEnergyData, calculateEnergyUsage } from '@/data/mockDashboardData';
+import { mockEnergyData } from '@/data/mockDashboardData';
+import { calculateEnergyUsage } from '@/lib/dashboard-utils';
 import { TrendingUp } from 'lucide-react';
 
 const data = calculateEnergyUsage(mockEnergyData);

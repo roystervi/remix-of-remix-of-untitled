@@ -1,4 +1,6 @@
 // ... keep existing imports ...
+import { Cloud } from 'lucide-react';
+
 import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';

@@ -2,9 +2,10 @@
 
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { getDeviceState, mockDevices } from '@/data/mockDashboardData';
+import { mockDevices } from '@/data/mockDashboardData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic } from 'lucide-react';
+import { getDeviceState } from '@/lib/dashboard-utils';
 
 export const DeviceControls = () => {
   const handleToggle = (id: string) => {
