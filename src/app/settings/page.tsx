@@ -487,31 +487,6 @@ const SettingsPage = () => {
     }
   };
 
-  // Add loadMcpSettings function
-  const loadMcpSettings = async () => {
-    try {
-      const response = await fetch('/api/mcp-settings');
-      if (response.ok) {
-        const data = await response.json();
-        setMcpUrl(data.url || 'http://homeassistant.local:8123');
-        setMcpToken(data.token || '');
-        setIsMcpConnected(data.connected ?? false);
-        if (data.entities) {
-          setExposedEntities(data.entities);
-        }
-        // Load advanced features
-        if (data.server_port) setServerPort(data.server_port);
-        if (data.exposure_rules) setExposureRules(JSON.stringify(data.exposure_rules, null, 2));
-        await loadMcpStatus();
-        if (isMcpConnected) {
-          await fetchDiscoveredEntities();
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load MCP settings:', error);
-    }
-  };
-
   // Add testMcpConnection function
   const testMcpConnection = async () => {
     if (!mcpUrl || !mcpToken) {
@@ -1243,7 +1218,7 @@ const SettingsPage = () => {
     }
   };
 
-  // Update loadMcpSettings to also load advanced features
+  // Enhanced loadMcpSettings function
   const loadMcpSettings = async () => {
     try {
       const response = await fetch('/api/mcp-settings');
