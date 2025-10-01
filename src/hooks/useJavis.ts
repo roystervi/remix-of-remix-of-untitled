@@ -104,41 +104,174 @@ export const useJavis = () => {
         if (state.isActive && !state.isProcessing) {
           setState(prev => ({ ...prev, isProcessing: true }));
           
-          // Simple parsing: look for 'turn on/off [entity]'
+          // Enhanced parsing: multiple intents
           const lowerTranscript = fullTranscript.toLowerCase();
-          const match = lowerTranscript.match(/(turn (on|off) (.+))/);
-          if (match && mcpSettings) {
-            const action = match[2] === 'on' ? 'turn_on' : 'turn_off';
-            const entityQuery = match[3].trim().toLowerCase();
-            
-            // Find matching entity from exposed
+          
+          // Temperature control: "set temperature in [room] to [value]"
+          const tempMatch = lowerTranscript.match(/(set temperature in (.+) to (\d+))/);
+          if (tempMatch && mcpSettings) {
+            const roomQuery = tempMatch[2].trim().toLowerCase();
+            const targetTemp = parseInt(tempMatch[3]);
             const matchedEntity = mcpSettings.exposedEntities.find(entity => 
-              entity.toLowerCase().includes(entityQuery)
+              entity.toLowerCase().includes(roomQuery) && entity.startsWith('climate.')
             );
-            
             if (matchedEntity) {
               try {
-                // Call HA API - For now, use fetch to new endpoint (to be created)
                 const res = await fetch('/api/ha/control', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ entity: matchedEntity, action })
+                  body: JSON.stringify({ entity: matchedEntity, action: 'set_temperature', value: targetTemp })
                 });
-                
                 if (res.ok) {
-                  toast.success(`Turning ${action.replace('_', ' ')} ${entityQuery}.`);
+                  toast.success(`Setting ${roomQuery} temperature to ${targetTemp}°F.`);
                 } else {
                   const err = await res.text();
-                  toast.error(`Failed to control ${entityQuery}: ${err}`);
+                  toast.error(`Failed to set temperature: ${err}`);
                 }
               } catch (err) {
                 toast.error('Network error during command execution.');
               }
             } else {
-              toast.error(`Entity "${entityQuery}" not found in your exposed devices.`);
+              toast.error(`Climate entity for "${roomQuery}" not found. Check exposed devices.`);
             }
-          } else {
-            toast.error(`I didn't understand: "${fullTranscript}". Try "turn on den light".`);
+          }
+          // Media control: "play/pause [media] in [room]"
+          else {
+            const mediaMatch = lowerTranscript.match(/(play|pause|stop) (.+) in (.+)/);
+            if (mediaMatch && mcpSettings) {
+              const command = mediaMatch[1];
+              const mediaType = mediaMatch[2].trim().toLowerCase();
+              const roomQuery = mediaMatch[3].trim().toLowerCase();
+              let service = command === 'play' ? 'media_play' : command === 'pause' ? 'media_pause' : 'media_stop';
+              const matchedEntity = mcpSettings.exposedEntities.find(entity => 
+                entity.toLowerCase().includes(roomQuery) && entity.startsWith('media_player.')
+              );
+              if (matchedEntity) {
+                try {
+                  const res = await fetch('/api/ha/control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entity: matchedEntity, action: service, media: mediaType || undefined })
+                  });
+                  if (res.ok) {
+                    toast.success(`${command.charAt(0).toUpperCase() + command.slice(1)}ing ${mediaType || ''} in ${roomQuery}.`);
+                  } else {
+                    const err = await res.text();
+                    toast.error(`Failed to control media: ${err}`);
+                  }
+                } catch (err) {
+                  toast.error('Network error during command execution.');
+                }
+              } else {
+                toast.error(`Media player for "${roomQuery}" not found.`);
+              }
+            }
+            // Sensor query: "what's the [sensor] in [room]?"
+            else {
+              const sensorMatch = lowerTranscript.match(/what'?s (the )?(temperature|humidity|motion|light level) in (.+)\?/);
+              if (sensorMatch && mcpSettings) {
+                const sensorType = sensorMatch[2].toLowerCase();
+                const roomQuery = sensorMatch[3].trim().toLowerCase();
+                const entityPrefix = sensorType === 'temperature' ? 'sensor.' : 
+                                    sensorType === 'humidity' ? 'sensor.' :
+                                    sensorType === 'motion' ? 'binary_sensor.' :
+                                    'sensor.';
+                const matchedEntity = mcpSettings.exposedEntities.find(entity => 
+                  entity.toLowerCase().includes(roomQuery) && entity.startsWith(entityPrefix) && 
+                  (sensorType === 'temperature' ? entity.includes('temp') : 
+                   sensorType === 'humidity' ? entity.includes('humidity') :
+                   sensorType === 'motion' ? entity.includes('motion') :
+                   entity.includes('illuminance'))
+                );
+                if (matchedEntity) {
+                  try {
+                    const res = await fetch('/api/ha/control', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ entity: matchedEntity, action: 'get_state' })
+                    });
+                    if (res.ok) {
+                      const data = await res.json();
+                      toast.success(`${sensorType.charAt(0).toUpperCase() + sensorType.slice(1)} in ${roomQuery}: ${data.state}${data.attributes?.unit_of_measurement || ''}.`);
+                    } else {
+                      const err = await res.text();
+                      toast.error(`Failed to get ${sensorType}: ${err}`);
+                    }
+                  } catch (err) {
+                    toast.error('Network error during query.');
+                  }
+                } else {
+                  toast.error(`Sensor for "${sensorType}" in "${roomQuery}" not found.`);
+                }
+              }
+              // Scene activation: "activate [scene]"
+              else {
+                const sceneMatch = lowerTranscript.match(/activate (.+) mode/);
+                if (sceneMatch && mcpSettings) {
+                  const sceneQuery = sceneMatch[1].trim().toLowerCase();
+                  const matchedEntity = mcpSettings.exposedEntities.find(entity => 
+                    entity.toLowerCase().includes(sceneQuery) && entity.startsWith('scene.')
+                  );
+                  if (matchedEntity) {
+                    try {
+                      const res = await fetch('/api/ha/control', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ entity: matchedEntity, action: 'turn_on' })
+                      });
+                      if (res.ok) {
+                        toast.success(`Activating ${sceneQuery} mode.`);
+                      } else {
+                        const err = await res.text();
+                        toast.error(`Failed to activate scene: ${err}`);
+                      }
+                    } catch (err) {
+                      toast.error('Network error during activation.');
+                    }
+                  } else {
+                    toast.error(`Scene "${sceneQuery}" not found.`);
+                  }
+                }
+                // Fallback to basic on/off
+                else {
+                  const match = lowerTranscript.match(/(turn (on|off) (.+))/);
+                  if (match && mcpSettings) {
+                    const action = match[2] === 'on' ? 'turn_on' : 'turn_off';
+                    const entityQuery = match[3].trim().toLowerCase();
+                    
+                    // Find matching entity from exposed (prioritize lights/switches)
+                    const matchedEntity = mcpSettings.exposedEntities.find(entity => 
+                      entity.toLowerCase().includes(entityQuery) && 
+                      (entity.startsWith('light.') || entity.startsWith('switch.'))
+                    );
+                    
+                    if (matchedEntity) {
+                      try {
+                        // Call HA API
+                        const res = await fetch('/api/ha/control', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ entity: matchedEntity, action })
+                        });
+                        
+                        if (res.ok) {
+                          toast.success(`Turning ${action.replace('_', ' ')} ${entityQuery}.`);
+                        } else {
+                          const err = await res.text();
+                          toast.error(`Failed to control ${entityQuery}: ${err}`);
+                        }
+                      } catch (err) {
+                        toast.error('Network error during command execution.');
+                      }
+                    } else {
+                      toast.error(`Entity "${entityQuery}" not found in your exposed devices.`);
+                    }
+                  } else {
+                    toast.error(`I didn't understand: "${fullTranscript}". Try "turn on den light" or "set temperature in den to 72".`);
+                  }
+                }
+              }
+            }
           }
 
           // Reset

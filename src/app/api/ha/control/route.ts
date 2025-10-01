@@ -3,49 +3,77 @@ import { db } from '@/db';
 import { mcpSettings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const { entity, action } = await request.json();
+    const body = await request.json();
+    const { entity, action, value, media } = body;
 
-    if (!entity || !action) {
-      return NextResponse.json({ error: 'Missing entity or action' }, { status: 400 });
+    // Fetch MCP settings from DB
+    const mcpRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/mcp-settings`);
+    if (!mcpRes.ok) {
+      return Response.json({ error: 'MCP not configured' }, { status: 500 });
+    }
+    const settings = await mcpRes.json() as { url: string; token: string; connected: boolean; exposedEntities: string[] };
+
+    if (!settings.connected || !entity || !settings.exposedEntities.includes(entity)) {
+      return Response.json({ error: 'Invalid entity or MCP not connected' }, { status: 400 });
     }
 
-    // Fetch MCP settings
-    const mcpData = await db.select().from(mcpSettings).limit(1);
-    if (mcpData.length === 0 || !mcpData[0].connected) {
-      return NextResponse.json({ error: 'MCP not connected' }, { status: 400 });
+    // Proxy to HA based on action
+    let haUrl = `${settings.url}/api/services`;
+    let haPayload: any = {};
+
+    if (action === 'turn_on' || action === 'turn_off') {
+      // Light/switch/scene
+      const domain = entity.split('.')[0]; // e.g., 'light', 'switch', 'scene'
+      haUrl += `/${domain}/${action}`;
+      haPayload = { entity_id: entity };
+    } else if (action === 'set_temperature') {
+      // Climate
+      haUrl += '/climate/set_temperature';
+      haPayload = { entity_id: entity, temperature: value };
+    } else if (action === 'media_play' || action === 'media_pause' || action === 'media_stop') {
+      // Media player
+      const service = action.replace('media_', '');
+      haUrl += '/media_player/' + service;
+      haPayload = { entity_id: entity };
+      if (media && action === 'media_play') {
+        haPayload.media_content_id = media;
+        haPayload.media_content_type = 'music'; // Default; extend if needed
+      }
+    } else if (action === 'get_state') {
+      // Fetch sensor state
+      haUrl = `${settings.url}/api/states/${entity}`;
+      const stateRes = await fetch(haUrl, {
+        headers: { Authorization: `Bearer ${settings.token}` }
+      });
+      if (stateRes.ok) {
+        const stateData = await stateRes.json();
+        return Response.json({ state: stateData.state, attributes: stateData.attributes });
+      } else {
+        return Response.json({ error: 'Failed to fetch state' }, { status: 500 });
+      }
+    } else {
+      return Response.json({ error: 'Unknown action' }, { status: 400 });
     }
 
-    const { url, token } = mcpData[0];
-
-    // Parse entity domain and id (e.g., light.den_light -> domain: 'light', id: 'den_light')
-    const [domain, ...entityIdParts] = entity.split('.');
-    const entityId = entityIdParts.join('.');
-    const service = `turn_${action.replace(' ', '_')}`;
-
-    if (!domain || !entityId) {
-      return NextResponse.json({ error: 'Invalid entity format' }, { status: 400 });
-    }
-
-    // Call HA API
-    const haResponse = await fetch(`${url}/api/services/${domain}/${service}`, {
+    const haRes = await fetch(haUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `Bearer ${settings.token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ entity_id: entityId }),
+      body: JSON.stringify(haPayload),
     });
 
-    if (!haResponse.ok) {
-      const errorText = await haResponse.text();
-      return NextResponse.json({ error: `HA API failed: ${errorText}` }, { status: haResponse.status });
+    if (haRes.ok) {
+      return Response.json({ success: true });
+    } else {
+      const errText = await haRes.text();
+      return Response.json({ error: `HA API failed: ${errText}` }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true, message: `Executed ${service} for ${entityId}` });
   } catch (error) {
     console.error('HA control error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
