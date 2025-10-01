@@ -35,7 +35,7 @@ export default function Home() {
           screenSize={screenSize}
         />
         
-        <div className="flex-1">
+        <div className={`flex-1 ${screenSize === 'desktop' ? 'pl-[18rem]' : ''}`}>
           <MainContent setSidebarOpen={setSidebarOpen} />
         </div>
       </main>

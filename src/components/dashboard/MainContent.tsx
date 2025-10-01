@@ -24,9 +24,9 @@ export const MainContent: React.FC<MainContentProps> = ({ setSidebarOpen }) => {
   const unit = '°'; // Can enhance to show °F/°C based on settings if needed
 
   return (
-    <div className="p-2 sm:p-4 md:p-6 h-full overflow-auto">
+    <div className="mt-0 pt-0 px-2 pb-4 sm:pt-0 sm:px-4 sm:pb-6 md:pt-0 md:px-6 md:pb-8 h-full overflow-auto">
       {/* Unified Header - Visible on all sizes */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="flex items-center justify-between mb-2 sm:mb-4">
         {/* Left: Menu + Title */}
         <div className="flex items-center gap-2 min-w-0">
           <button 
