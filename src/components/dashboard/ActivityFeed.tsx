@@ -1,36 +1,21 @@
-"use client";
-
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { formatTime } from '@/lib/dashboard-utils';
-import { mockActivities } from '@/data/mockDashboardData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, User } from 'lucide-react';
-
 export const ActivityFeed = () => {
+  const activities = [
+    { time: '2 min ago', action: 'Light turned on in Living Room', icon: 'lightbulb' },
+    { time: '5 min ago', action: 'Door unlocked via app', icon: 'door-open' },
+    { time: '10 min ago', action: 'Thermostat set to 72°F', icon: 'thermometer' },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          Recent Activity
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-64">
-          <div className="space-y-3">
-            {mockActivities.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-3 p-2 rounded-md border">
-                <div className="text-sm text-muted-foreground">
-                  {formatTime(activity.time)}
-                </div>
-                <div className="flex-1">
-                  <span className="font-medium">{activity.action}</span> {activity.entity} by <User className="h-3 w-3 inline" /> {activity.user}
-                </div>
-              </div>
-            ))}
+    <div className="space-y-3">
+      {activities.map((activity, idx) => (
+        <div key={idx} className="flex items-center space-x-3 p-3 rounded-md bg-muted/50">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <div className="flex-1">
+            <p className="text-sm font-medium">{activity.action}</p>
+            <p className="text-xs text-muted-foreground">{activity.time}</p>
           </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        </div>
+      ))}
+    </div>
   );
 };

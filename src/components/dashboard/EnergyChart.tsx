@@ -1,31 +1,25 @@
-"use client";
+"use client"
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockEnergyData } from '@/data/mockDashboardData';
-import { calculateEnergyUsage } from '@/lib/dashboard-utils';
-import { TrendingUp } from 'lucide-react';
 
-const data = calculateEnergyUsage(mockEnergyData);
+const data = [
+  { hour: '00:00', usage: 400 },
+  { hour: '04:00', usage: 300 },
+  { hour: '08:00', usage: 500 },
+  { hour: '12:00', usage: 450 },
+  { hour: '16:00', usage: 600 },
+  { hour: '20:00', usage: 550 },
+  { hour: '24:00', usage: 400 },
+];
 
 export const EnergyChart = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <TrendingUp className="h-4 w-4" />
-        Energy Usage
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="labels" />
-          <YAxis />
-          <Tooltip />
-          <Line type="monotone" dataKey="data" stroke="var(--primary)" strokeWidth={2} />
-        </LineChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
+  <ResponsiveContainer width="100%" height={300}>
+    <LineChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="hour" />
+      <YAxis />
+      <Tooltip />
+      <Line type="monotone" dataKey="usage" stroke="#8884d8" />
+    </LineChart>
+  </ResponsiveContainer>
 );

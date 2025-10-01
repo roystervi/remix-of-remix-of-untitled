@@ -1,27 +1,23 @@
-"use client";
-
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Lightbulb, Home, Shield } from 'lucide-react';
-
-const actions = [
-  { icon: Lightbulb, label: 'All Lights On', onClick: () => console.log('Lights on') },
-  { icon: Home, label: 'Home Mode', onClick: () => console.log('Home mode') },
-  { icon: Shield, label: 'Away Mode', onClick: () => console.log('Away mode') },
-  { icon: Lightbulb, label: 'All Off', onClick: () => console.log('All off') },
-];
+import { Lamp, Thermometer, Lock, Wifi } from 'lucide-react';
 
 export const QuickActions = () => (
-  <Card>
-    <CardContent className="p-0 pt-6">
-      <div className="grid grid-cols-2 gap-4 p-6">
-        {actions.map((action, i) => (
-          <Button key={i} variant="outline" className="flex flex-col gap-2 h-auto p-4" onClick={action.onClick}>
-            <action.icon className="h-6 w-6" />
-            <span className="text-sm">{action.label}</span>
-          </Button>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
+  <div className="space-y-2">
+    <Button variant="outline" className="w-full justify-start">
+      <Lamp className="mr-2 h-4 w-4" />
+      Toggle Lights
+    </Button>
+    <Button variant="outline" className="w-full justify-start">
+      <Thermometer className="mr-2 h-4 w-4" />
+      Set Temperature
+    </Button>
+    <Button variant="outline" className="w-full justify-start">
+      <Lock className="mr-2 h-4 w-4" />
+      Lock Doors
+    </Button>
+    <Button variant="outline" className="w-full justify-start">
+      <Wifi className="mr-2 h-4 w-4" />
+      Network Status
+    </Button>
+  </div>
 );
