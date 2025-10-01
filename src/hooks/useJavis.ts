@@ -138,7 +138,7 @@ export const useJavis = () => {
               toast.error(`Entity "${entityQuery}" not found in your exposed devices.`);
             }
           } else {
-            toast.error(\`I didn't understand: "${fullTranscript}". Try "turn on den light".\`);
+            toast.error(`I didn't understand: "${fullTranscript}". Try "turn on den light".`);
           }
 
           // Reset
