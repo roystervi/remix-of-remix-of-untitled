@@ -10,13 +10,14 @@ import {
   Smartphone as SmartHome,
   Mic,
   X,
-  Settings 
+  Settings,
+  Database,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getSidebarClass } from '@/lib/dashboard-utils';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { BarChart3 } from 'lucide-react';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -28,28 +29,16 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, audioLevels, screenSize }) => {
   const router = useRouter();
 
-  const sidebarClasses = cn(
-    "fixed inset-y-0 left-0 z-50 w-72 bg-sidebar flex flex-col",
-    screenSize === 'desktop' ? 'translate-x-0 shadow-lg' : sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-    "transition-transform duration-300 ease-in-out"
-  );
-
   return (
-    <div className={sidebarClasses}>
-      {screenSize !== 'desktop' ? (
-        <div className="p-4 border-b border-border bg-sidebar flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">Menu</h2>
-          <button 
-            className="p-2 text-muted-foreground hover:text-foreground"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      ) : (
-        <div className="p-4 border-b border-border bg-sidebar">
-          <h2 className="text-lg font-semibold text-foreground">Dashboard</h2>
-        </div>
+    <div className={getSidebarClass(screenSize, sidebarOpen, cn)}>
+      {/* Mobile Close Button */}
+      {screenSize !== 'desktop' && (
+        <button 
+          className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <X className="w-5 h-5" />
+        </button>
       )}
 
       <div className="p-6 flex-1 overflow-y-auto">
@@ -93,54 +82,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           <h3 className="text-lg font-semibold mb-4 text-foreground">My Rooms</h3>
           <div className="grid grid-cols-2 gap-3">
             {/* Entrance */}
-            <button 
-              onClick={() => router.push('/rooms/entrance')}
-              className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors"
-            >
+            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
               <Home className="w-6 h-6 mb-2 text-muted-foreground" />
               <p className="text-sm font-medium text-foreground">Entrance</p>
-            </button>
+            </div>
 
             {/* Backyard */}
-            <button 
-              onClick={() => router.push('/rooms/backyard')}
-              className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors"
-            >
+            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
               <Home className="w-6 h-6 mb-2 text-muted-foreground" />
               <p className="text-sm font-medium text-foreground">Backyard</p>
-            </button>
+            </div>
 
             {/* Living Room */}
-            <button 
-              onClick={() => router.push('/rooms/living')}
-              className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors"
-            >
+            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
               <Home className="w-6 h-6 mb-2 text-muted-foreground" />
               <p className="text-sm font-medium text-foreground">Living Room</p>
-            </button>
+            </div>
 
             {/* Front Room */}
-            <button 
-              onClick={() => router.push('/rooms/front')}
-              className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors"
-            >
+            <div className="bg-card rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-accent transition-colors">
               <Home className="w-6 h-6 mb-2 text-muted-foreground" />
               <p className="text-sm font-medium text-foreground">Front Room</p>
-            </button>
+            </div>
 
             {/* My Workstation - Highlighted */}
-            <div className="bg-primary rounded-xl p-3 flex flex-col items-center cursor-pointer relative">
+            <div className="bg-primary rounded-xl p-3 flex flex-col items-center cursor-pointer">
               <Home className="w-6 h-6 mb-2 text-primary-foreground" />
               <p className="text-sm font-medium text-primary-foreground">My Workstation</p>
-              <button 
-                onClick={() => router.push('/dashboard')}
-                className="absolute inset-0"
-                aria-label="Go to My Workstation"
-              />
             </div>
 
             {/* Add New Room */}
-            <button className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center hover:border-primary transition-colors" onClick={() => router.push('/rooms/new')}>
+            <button className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center hover:border-primary transition-colors">
               <Plus className="w-6 h-6 text-muted-foreground" />
               <p className="text-sm font-medium text-muted-foreground mt-1">Add new</p>
             </button>
@@ -152,26 +124,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           <h3 className="text-lg font-semibold mb-4 text-foreground">Set room environment</h3>
           <div className="flex gap-3 pb-2 overflow-x-auto">
             {/* Music Mode */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]" onClick={() => router.push('/modes/music')}>
+            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
               <Music className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Music</span>
               <span className="text-xs text-foreground">Mode</span>
             </button>
 
             {/* Cool */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]" onClick={() => router.push('/modes/cool')}>
+            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
               <Snowflake className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Cool</span>
             </button>
 
             {/* Night */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]" onClick={() => router.push('/modes/night')}>
+            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
               <Moon className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Night</span>
             </button>
 
             {/* Smart Home */}
-            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]" onClick={() => router.push('/modes/smart')}>
+            <button className="flex flex-col items-center p-3 rounded-lg hover:bg-accent transition-colors min-w-[60px]">
               <SmartHome className="w-5 h-5 mb-1 text-foreground" />
               <span className="text-xs text-foreground">Smart</span>
               <span className="text-xs text-foreground">Home</span>
@@ -179,13 +151,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, a
           </div>
 
           {/* Analytics Link - Added */}
-          <Link href="/analytics" className={cn("mt-4 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors", getSidebarClass(true, screenSize))}>
+          <Link href="/analytics" className="mt-4 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors">
             <BarChart3 className="w-5 h-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Analytics</span>
           </Link>
 
+          {/* Database Studio Link - Added next to Analytics */}
+          <Link href="/database-studio" className="mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors">
+            <Database className="w-5 h-5 text-foreground" />
+            <span className="text-sm font-medium text-foreground">Database Studio</span>
+          </Link>
+
           {/* Settings Link */}
-          <Link href="/settings" className={cn("mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors", getSidebarClass(false, screenSize))}>
+          <Link href="/settings" className="mt-2 flex items-center gap-3 w-full p-3 rounded-xl bg-card hover:bg-accent transition-colors">
             <Settings className="w-5 h-5 text-foreground" />
             <span className="text-sm font-medium text-foreground">Settings</span>
           </Link>
