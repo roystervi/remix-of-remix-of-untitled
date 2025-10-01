@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '@/lib/auth-client';
 import { Database, Search, Table } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,74 +21,46 @@ export default function ClientDatabaseStudio() {
   const [tableData, setTableData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (sessionLoading) return;
-    if (!session?.user) {
-      router.push('/login');
-      return;
-    }
     fetchTables();
-  }, [session, sessionLoading, router]);
+  }, [router]);
 
   const fetchTables = async () => {
-    if (!session) return;
     try {
       setLoading(true);
-      const token = localStorage.getItem('bearer_token');
-      const res = await fetch('/api/database-studio/tables', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch('/api/database-studio/tables');
       if (res.ok) {
         const data = await res.json();
         setTables(data.tables || []);
       } else {
-        toast.error('Failed to fetch tables');
+        console.error('Failed to fetch tables');
       }
     } catch (err) {
       console.error('Error fetching tables:', err);
-      toast.error('Error fetching tables');
     } finally {
       setLoading(false);
     }
   };
 
   const fetchTableData = async (tableName: string) => {
-    if (!session) return;
     try {
-      const token = localStorage.getItem('bearer_token');
-      const res = await fetch(`/api/database-studio/table/${tableName}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(`/api/database-studio/table/${tableName}`);
       if (res.ok) {
         const data = await res.json();
         setTableData(data.data || []);
       } else {
-        toast.error('Failed to fetch table data');
+        console.error('Failed to fetch table data');
       }
     } catch (err) {
       console.error('Error fetching table data:', err);
-      toast.error('Error fetching table data');
     }
   };
 
   const filteredTables = tables.filter(table =>
     table.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  if (sessionLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading session...</div>;
-  }
-
-  if (!session?.user) {
-    return null; // Will redirect via useEffect
-  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
